@@ -21,7 +21,7 @@ def solve(rho_init,B,omegaT):
     pf_cum = np.exp(log_pf)
 
     ans = rho*np.exp(log_pf)
-    lim = omegaT+6*np.sqrt(omegaT)
+    lim = max(omegaT+6*np.sqrt(omegaT),5)
     for k in np.arange(1,lim):
         log_pf  += np.log(omegaT/k)
         pf = np.exp(log_pf)
@@ -53,12 +53,11 @@ class case:
         beta_s,gamma_s = value[:2]
         mean_steady = beta_s/gamma_s
         Np = int(mean_steady + 6*np.sqrt(mean_steady) + 1)
-
         Na,Nb = initial[:4].sum(),initial[4:6].sum()
         st = stsp.make_stsp(Na,Nb,Np,Np)
         self.states = st
-        self.pinitial = np.zeros(st.shape[0])
 
+        self.pinitial = np.zeros(st.shape[0])
         ind = stsp.search(initial,st,st.shape[0]//2)
         self.pinitial[ind]=1.0
 
@@ -68,7 +67,7 @@ class case:
     def solver(self,Ts):
         p = self.pinitial*1.0
         pt = []
-        t=0
+        t=0.
         for T in Ts:
             p = solve(p,self.B,(T-t)*self.omega)
             pt.append(p)

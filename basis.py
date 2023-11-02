@@ -18,19 +18,24 @@ def lexographic_compare(arr1,arr2):
             return -1 ##arr2 is smaller
     return 0 ##they are equal
 
-#@njit
-def marginalize_1d(p,states,inds):
-        s_eff = states[:,inds]
-        s_ans,pind = np.unique(s_eff,return_inverse=True)
-        p_ans = np.zeros(s_ans.size)
-        
-        for (i,pi) in zip(pind,p):
-            p_ans[i] += pi
+
+@njit
+def marginalize_1d(p,states,ind,reduced = False):
+        s_eff = states[:,ind]
+
+        s_ans = np.arange(s_eff.max()+1,dtype=np.int64)
+        p_ans = np.zeros(s_eff.max()+1)
+        for (i,pi) in zip(s_eff,p):
+            p_ans[i] += pi     
+
+        if reduced:
+            return s_ans[p_ans>0],p_ans[p_ans>0]
+
         return s_ans,p_ans
 
 def marginalize(p, states, inds):
     if isinstance(inds,int):
-        return marginalize_1d(p,states,inds)
+        return marginalize_1d(p,states,inds,reduced=True)
 
     seen_indices = {}
     
@@ -39,3 +44,22 @@ def marginalize(p, states, inds):
         seen_indices[s_eff] = seen_indices.get(s_eff, 0) + pi
     
     return np.stack(list(seen_indices.keys())),np.array(list(seen_indices.values()))
+
+@njit
+def entropy(p):
+    ps = p[p!=0]
+    return -np.sum(ps*np.log(ps))
+
+@njit
+def mutual_info(s,p):
+    ind = (p!=0)
+    if not np.all(ind):
+        return mutual_info(s[ind],p[ind])
+
+    sa,pa = marginalize_1d(p,s,0)
+    sb,pb = marginalize_1d(p,s,1)
+
+    pa_lined = pa[s[:,0]]
+    pb_lined = pb[s[:,1]]   
+
+    return np.sum( p*(np.log(p) - np.log(pa_lined) - np.log(pb_lined)) ) 

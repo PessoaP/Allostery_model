@@ -18,7 +18,9 @@ Stoichiometry = np.array([[ 0,  0,  0,  0,  0,  0,  0,  1],
                           [ 0,  0,  0,  0,  1, -1,  1,  0],
                           [ 0,  0,  0,  0,  0,  0, -1,  0]])
 
-reorder = np.argsort((Stoichiometry*(2**np.arange(7,-1,-1))).sum(axis=1))
+#Stoichiometry*=1-np.array([ 0,  0,  0,  0,  0,  0,  0,  1])
+
+#reorder = np.argsort((Stoichiometry*(2**np.arange(7,-1,-1))).sum(axis=1))
 
 @njit
 def get_rates(x,value):

@@ -66,8 +66,8 @@ def rate_matrix_cols_search(index,origin,rate_values,S,states):
     guess = index
     cols = -np.ones(rate_values.size,dtype=np.int64)
     for j in range(rate_values.size):
-        if rate_values[j]>0:
-            target = origin + S[j]
+        target = origin + S[j]
+        if rate_values[j]>0 and np.any(target!=origin):
             jind = search(target,states,guess)
             if jind>=0:
                 guess = jind 
@@ -75,14 +75,13 @@ def rate_matrix_cols_search(index,origin,rate_values,S,states):
     return cols
 
 def get_rate_matrix(value,states):
-    order = reactions.reorder
-    S = reactions.Stoichiometry[order] 
+    S = reactions.Stoichiometry
 
     list_line,list_cols,list_vals = [],[],[]
     for i in range(states.shape[0]):
         origin = states[i]
 
-        rate_values = reactions.get_rates(origin,value)[order] 
+        rate_values = reactions.get_rates(origin,value) 
 
         cols = rate_matrix_cols_search(i,origin,rate_values,S,states)
 
