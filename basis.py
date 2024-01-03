@@ -1,5 +1,5 @@
 import numpy as np
-from numba import njit#,typed,types
+from numba import njit,typed,types
 
 @njit
 def categorical(p):
@@ -18,20 +18,19 @@ def lexographic_compare(arr1,arr2):
             return -1 ##arr2 is smaller
     return 0 ##they are equal
 
-
 @njit
 def marginalize_1d(p,states,ind,reduced = False):
-        s_eff = states[:,ind]
+    s_eff = states[:,ind]
 
-        s_ans = np.arange(s_eff.max()+1,dtype=np.int64)
-        p_ans = np.zeros(s_eff.max()+1)
-        for (i,pi) in zip(s_eff,p):
-            p_ans[i] += pi     
+    s_ans = np.arange(s_eff.max()+1,dtype=np.int64)
+    p_ans = np.zeros(s_eff.max()+1)
+    for (i,pi) in zip(s_eff,p):
+        p_ans[i] += pi     
+        
+    if reduced:
+        return s_ans[p_ans>0],p_ans[p_ans>0]
 
-        if reduced:
-            return s_ans[p_ans>0],p_ans[p_ans>0]
-
-        return s_ans,p_ans
+    return s_ans,p_ans
 
 def marginalize(p, states, inds):
     if isinstance(inds,int):
@@ -50,7 +49,7 @@ def entropy(p):
     ps = p[p!=0]
     return -np.sum(ps*np.log(ps))
 
-@njit
+#@njit
 def mutual_info(s,p):
     ind = (p!=0)
     if not np.all(ind):

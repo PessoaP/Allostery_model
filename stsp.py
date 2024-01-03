@@ -1,97 +1,48 @@
 import numpy as np
-from numba import njit
+from numba import njit,types
 import reactions
-from basis import lexographic_compare
 
 @njit
-def detach(N, lim, N_species):
-    return np.array([N // lim**i % lim for i in range(N_species)])
+def index2state(ind,Na,Nb,Np,Ns):
+    return np.array((ind//(Nb*Np*Ns),(ind//(Np*Ns))%Nb,(ind//Ns)%Np,ind%Ns))
 
 @njit
-def constrained_sp(constraint,N_species):
-    stsp = []
-    for n in range((constraint+1)**(N_species)):
-        st = np.flip(detach(n,constraint+1,N_species))
-        if np.sum(st) == constraint:
-            stsp.append(st)
-    #return np.array(stsp)
-    
-    result = np.empty((len(stsp), N_species), dtype=np.int64)
-    for i, arr in enumerate(stsp):
-        result[i, :] = arr
-    
-    return result
-
-#@njit
-def cartesian_prod(first,second):
-    return np.vstack([np.hstack((f, s)) for f in first for s in second])
-
-#@njit
-def cartesian(*args):
-    if len(args)==2:
-        return cartesian_prod(*args)
-    return cartesian(args[0],cartesian(*args[1:]))
-
-def make_stsp(Na,Nb,Np,Ns):
-    stspA = constrained_sp(Na,4)
-    stspB = constrained_sp(Nb,2)
-    stspP = np.arange(Np)
-    stspS = np.arange(Ns)
-
-    return cartesian(stspA,stspB,stspP,stspS)
-
+def state2index(state,Na,Nb,Np,Ns):
+    return np.sum(state * np.array((Nb * Np * Ns,Np * Ns,Ns,1)))
 
 @njit
-def search(target,states,guess):
-    mino, majo = 0,states.shape[0]-1
-    while mino < majo:
-        comparison = lexographic_compare(target,states[guess])
-
-        if comparison == 0:
-            return guess  # Found the target 
-        elif comparison < 0:
-            majo = guess - 1
-        else:
-            mino = guess + 1
-        guess = mino + (majo - mino) // 2
-
-    comparison = lexographic_compare(target,states[mino])
-    if comparison==0:
-        return mino
-
-    return -1
+def getS(N,S=reactions.S):
+    return np.array([state2index(st,N[0],N[1],N[2],N[3]) for st in S])
 
 @njit
-def rate_matrix_cols_search(index,origin,rate_values,S,states):
-    guess = index
-    cols = -np.ones(rate_values.size,dtype=np.int64)
-    for j in range(rate_values.size):
-        target = origin + S[j]
-        if rate_values[j]>0 and np.any(target!=origin):
-            jind = search(target,states,guess)
-            if jind>=0:
-                guess = jind 
-                cols[j] = jind
-    return cols
+def make_stsp(initial,N):
+    states = np.zeros((np.prod(N),4),dtype=np.int64)
+    for i in range(np.prod(N)):
+        states[i] = index2state(i,N[0],N[1],N[2],N[3])
+    return states
 
-def get_rate_matrix(value,states):
-    S = reactions.Stoichiometry
+@njit
+def make_initial(initial,states):
+    I = states.shape[0]
+    p_ini = np.zeros(I)
+    for i in range(I):
+        p_ini[i]+=np.all(np.logical_or(initial==-1,initial==states[i]))
+    return p_ini/p_ini.sum()
 
-    list_line,list_cols,list_vals = [],[],[]
-    for i in range(states.shape[0]):
-        origin = states[i]
+def get_rate_matrix(value,S_ind,N):
+    rows_list,cols_list,vals_list=[],[],[]
+    for i in range(np.prod(N)):
+        cols = S_ind+i
+        vals = reactions.get_rates(index2state(i,*N),value,N)
 
-        rate_values = reactions.get_rates(origin,value) 
-
-        cols = rate_matrix_cols_search(i,origin,rate_values,S,states)
-
-        keep = cols>=0
-        rate_values = rate_values[keep]
+        keep = vals > 0
         cols = cols[keep]
-        lines = i*np.ones_like(cols)
+        vals = vals[keep]
+        row = i*np.ones_like(cols)
 
-        list_line.append(lines)
-        list_cols.append(cols)
-        list_vals.append(rate_values)
-    
-    return np.hstack(list_line),np.hstack(list_cols),np.hstack(list_vals)
+        rows_list.append(row)
+        cols_list.append(cols)
+        vals_list.append(vals)
+    return np.concatenate(rows_list),np.concatenate(cols_list),np.concatenate(vals_list)
+
+

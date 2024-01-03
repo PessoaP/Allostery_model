@@ -8,6 +8,7 @@ def sm_asarray(lines,columns,values,shape):
     for i in range(lines.size):
         res[lines[i],columns[i]] += values[i]
     return res
+
 @njit
 def sm_sum(lines,columns,values,shape):
     res = np.zeros(shape)

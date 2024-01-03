@@ -47,35 +47,48 @@ def guillespie(initial,T,value):
 
 class case:
     def __init__(self,initial,value):
-        self.initial = initial
         self.value = value
 
         beta_s,gamma_s = value[:2]
         mean_steady = beta_s/gamma_s
-        Np = int(mean_steady + 6*np.sqrt(mean_steady) + 1)
-        Na,Nb = initial[:4].sum(),initial[4:6].sum()
-        st = stsp.make_stsp(Na,Nb,Np,Np)
-        self.states = st
 
-        self.pinitial = np.zeros(st.shape[0])
-        ind = stsp.search(initial,st,st.shape[0]//2)
-        self.pinitial[ind]=1.0
+        Ns = int(mean_steady + 10*np.sqrt(mean_steady) + 1)
+        #Np = Ns
+        #Na,Nb = 4,2
+        N = np.array((4,2,Ns,Ns))
+        self.N = N
 
-        rate_matrix = smn.sparse_matrix(*stsp.get_rate_matrix(value,st))
+        self.states = stsp.make_stsp(initial,N)
+        self.pinitial = stsp.make_initial(initial,self.states)
+
+        S_ind = stsp.getS(N)
+
+        sm = stsp.get_rate_matrix(value,S_ind,N)
+        rate_matrix = smn.sparse_matrix(*sm)
         self.B,self.omega = get_B(rate_matrix)
+   
+    def solver(self,Ts,init=None):
+        if init is None:
+            p = self.pinitial*1.0
+        else:
+            p = init*1.0
+        if isinstance(1.0*Ts, float):
+            return solve(p,self.B,(Ts)*self.omega)
+        else:
+            t = 0.
+            pt = []
+            for T in Ts:
+                p = self.solver(T-t,init=p)
+                pt.append(p)
+                t=T
+            return np.vstack(pt)
 
-    def solver(self,Ts):
-        p = self.pinitial*1.0
-        pt = []
-        t=0.
-        for T in Ts:
-            p = solve(p,self.B,(T-t)*self.omega)
-            pt.append(p)
-            t=T
-        return np.vstack(pt)
-    
     def run_guillespie(self,Ts):
         if isinstance(Ts,np.ndarray):
             return np.stack([self.run_guillespie(t)[1] for t in Ts])
         
         return guillespie(self.initial,Ts,self.value)
+    
+    def found_steady_state(self,p,tol=1e-12):
+        pA_overomega = (smn.array_times_sm(p,self.B)-p)
+        return np.max(pA_overomega)*self.omega<tol
