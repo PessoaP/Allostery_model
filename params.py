@@ -53,8 +53,6 @@ class case:
         mean_steady = beta_s/gamma_s
 
         Ns = int(mean_steady + 10*np.sqrt(mean_steady) + 1)
-        #Np = Ns
-        #Na,Nb = 4,2
         N = np.array((4,2,Ns,Ns))
         self.N = N
 
@@ -92,3 +90,56 @@ class case:
     def found_steady_state(self,p,tol=1e-12):
         pA_overomega = (smn.array_times_sm(p,self.B)-p)
         return np.max(pA_overomega)*self.omega<tol
+    
+def create_cases(bog,allo_rate=10):
+    init = np.array((0,  #A
+                    0,  #B
+                    0,  #P
+                    bog*1.0 #S
+                    ))
+    
+    allosteric_value = np.array((bog*1.0, #beta_s
+                                1.,   #gamma_s
+                                1,  #kAon
+                                1,  #kAoff
+                                10,  #kApon
+                                1.,  #kApoff
+                                1.,  #alpha
+                                4.,  #alphap
+                                10.,  #alpha_s
+                                1.,  #alpha_sp
+                                1.,  #nu
+                                allo_rate*1.0, #nup
+                                1., #kBon
+                                1., #kBoff
+                                1.  #gammaP
+                                ))
+
+    non_allost_value = np.array((bog*1.0, #beta_s
+                                1.,   #gamma_s
+                                11,  #kAon
+                                2,  #kAoff
+                                0,  #kApon
+                                0,  #kApoff
+                                0.,  #alpha
+                                0,  #alphap
+                                0.,  #alpha_s
+                                0.,  #alpha_sp
+                                (1.+allo_rate),  #nu
+                                0., #nup
+                                1., #kBon
+                                1., #kBoff
+                                1.  #gammaP
+                                ))
+    
+    return case(init,allosteric_value), case(init,non_allost_value)
+
+def find_steady(case):
+    p=case.pinitial
+    is_steady=False
+    t=0
+    while not(is_steady):
+        p = case.solver(10,p)
+        is_steady = case.found_steady_state(p)
+        t+=10
+    return p,t

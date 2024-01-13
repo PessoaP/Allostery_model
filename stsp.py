@@ -11,8 +11,8 @@ def state2index(state,Na,Nb,Np,Ns):
     return np.sum(state * np.array((Nb * Np * Ns,Np * Ns,Ns,1)))
 
 @njit
-def getS(N,S=reactions.S):
-    return np.array([state2index(st,N[0],N[1],N[2],N[3]) for st in S])
+def getS(N,St=reactions.St):
+    return np.array([state2index(st,N[0],N[1],N[2],N[3]) for st in St])
 
 @njit
 def make_stsp(initial,N):
