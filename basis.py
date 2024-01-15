@@ -10,6 +10,10 @@ def normalize(x):
     return x/x.sum()
 
 @njit
+def expected(f,prob):
+    return np.sum(f*prob)
+
+@njit
 def lexographic_compare(arr1,arr2):
     for i in range(arr1.size):
         if arr1[i]>arr2[i]:

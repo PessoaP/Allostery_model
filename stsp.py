@@ -26,10 +26,14 @@ def make_initial(initial,states):
     I = states.shape[0]
     p_ini = np.zeros(I)
     for i in range(I):
-        p_ini[i]+=np.all(np.logical_or(initial==-1,initial==states[i]))
+        #p_ini[i]+=np.all(np.logical_or(initial==-1,initial==states[i]))
+        p_ini[i]+=np.all(np.logical_or(initial==-1,(initial-states[i])<=.5))
     return p_ini/p_ini.sum()
 
-def get_rate_matrix(value,S_ind,N):
+#old
+#remove by release
+
+def old_get_rate_matrix(value,S_ind,N):
     rows_list,cols_list,vals_list=[],[],[]
     for i in range(np.prod(N)):
         cols = S_ind+i
@@ -46,3 +50,20 @@ def get_rate_matrix(value,S_ind,N):
     return np.concatenate(rows_list),np.concatenate(cols_list),np.concatenate(vals_list)
 
 
+@njit
+def get_rate_matrix(value,S_ind,N):
+    r = reactions.St.shape[0]
+    rows_2d,cols_2d,vals_2d = np.empty((np.prod(N),r),dtype=types.int64),np.empty((np.prod(N),reactions.St.shape[0]),dtype=types.int64),np.empty((np.prod(N),reactions.St.shape[0]),dtype=types.float64)
+    
+    for i in range(np.prod(N)):
+        cols = S_ind+i
+        vals = reactions.get_rates(index2state(i,N[0],N[1],N[2],N[3]),value,N)
+        rows = i*np.ones_like(cols)
+
+        rows_2d[i] = rows
+        cols_2d[i] = cols
+        vals_2d[i] = vals
+
+    rows,cols,vals = rows_2d.reshape(-1), cols_2d.reshape(-1), vals_2d.reshape(-1)
+    keep = (vals!=0)
+    return rows[keep],cols[keep],vals[keep]

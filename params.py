@@ -91,6 +91,16 @@ class case:
         pA_overomega = (smn.array_times_sm(p,self.B)-p)
         return np.max(pA_overomega)*self.omega<tol
     
+    def find_steady(self):
+        p=self.pinitial
+        is_steady=False
+        t=0
+        while not(is_steady):
+            p = self.solver(10,p)
+            is_steady = self.found_steady_state(p)
+            t+=10
+        return p,t
+    
 def create_cases(bog,allo_rate=10):
     init = np.array((0,  #A
                     0,  #B
@@ -133,13 +143,3 @@ def create_cases(bog,allo_rate=10):
                                 ))
     
     return case(init,allosteric_value), case(init,non_allost_value)
-
-def find_steady(case):
-    p=case.pinitial
-    is_steady=False
-    t=0
-    while not(is_steady):
-        p = case.solver(10,p)
-        is_steady = case.found_steady_state(p)
-        t+=10
-    return p,t
