@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit,types
+import scipy.special as sc
 import reactions
 
 @njit
@@ -21,13 +22,23 @@ def make_stsp(initial,N):
         states[i] = index2state(i,N[0],N[1],N[2],N[3])
     return states
 
-@njit
-def make_initial(initial,states):
+#@njit
+def make_initial(initial,states,poisson_S=True):
     I = states.shape[0]
     p_ini = np.zeros(I)
-    for i in range(I):
-        #p_ini[i]+=np.all(np.logical_or(initial==-1,initial==states[i]))
-        p_ini[i]+=np.all(np.logical_or(initial==-1,(initial-states[i])<=.5))
+    if poisson_S:
+        for i in range(I):
+            p_ini[i]+=np.all(np.logical_or(initial[:3]==-1,initial[:3]==states[i,:3]))
+        poisson_k = states[:,-1]
+        poisson_rate = initial[-1]
+        poisson_log_prob = poisson_k*np.log(poisson_rate) - poisson_rate - sc.gammaln(poisson_k+1.)
+
+        p_ini *= np.exp(poisson_log_prob-poisson_log_prob.max())
+
+    else:
+        for i in range(I):
+            p_ini[i]+=np.all(np.logical_or(initial==-1,initial==states[i]))
+    
     return p_ini/p_ini.sum()
 
 #old

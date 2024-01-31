@@ -5,14 +5,14 @@ import smn
 
 @njit
 def get_B(sm):
-    newlines=np.arange(sm.shape)
-    b_lines=np.concatenate((newlines,sm.lines))
-    b_columns=np.concatenate((newlines,sm.columns))
+    newrows=np.arange(sm.shape)
+    b_rows=np.concatenate((newrows,sm.rows))
+    b_columns=np.concatenate((newrows,sm.columns))
 
-    ad =  smn.sm_sum(sm.lines,sm.columns,sm.values,sm.shape)
+    ad =  smn.sm_sum(sm.rows,sm.columns,sm.values,sm.shape)
     omega = 1.1*ad.max()
     b_values = np.concatenate(((1-ad/omega),(sm.values/omega)))
-    return smn.sparse_matrix(b_lines,b_columns,b_values,sm.shape),omega
+    return smn.sparse_matrix(b_rows,b_columns,b_values,sm.shape),omega
 
 @njit
 def solve(rho_init,B,omegaT):
