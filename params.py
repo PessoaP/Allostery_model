@@ -89,7 +89,7 @@ class case:
     
     def found_steady_state(self,p,tol=1e-12):
         pA_overomega = (smn.array_times_sm(p,self.B)-p)
-        return np.max(pA_overomega)*self.omega<tol
+        return np.max(np.abs(pA_overomega))*self.omega<tol
     
     def find_steady(self):
         p=self.pinitial

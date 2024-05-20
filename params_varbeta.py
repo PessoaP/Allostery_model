@@ -30,7 +30,6 @@ def guillespie(initial,T,value):
             t,x = t_p,x_p
 
 
-
 @njit
 def arr_times_A_obeta(arr,cgu):
     #cgu - can go up
@@ -63,6 +62,7 @@ def RK_solve(init,t_init,t_final,dt,    beta_f,beta_T,beta_max,can_go_up,A_fixed
        
     return evolve_RK(rho,t,t_final-t, beta_f,beta_T,beta_max,can_go_up,A_fixed)
 
+
 class A_variable:
     def __init__(self,beta_max,beta_T,value_nbeta,can_go_up,N,function='triangle'):
         S_ind = stsp.getS(N)
@@ -90,7 +90,7 @@ class A_variable:
         return RK_solve(init,t_init,t_final,dt,    self.beta_f,self.beta_T,self.beta_max,self.can_go_up,self.A_fixed)
 
 class case:
-    def __init__(self,initial,value_nbeta,beta_max,function_params,function='triangle'):
+    def __init__(self,initial,value_nbeta,beta_max,function_params,function='triangle', hex_code=None):
 
         self.value_nbeta = value_nbeta
         self.beta_max = beta_max
@@ -100,9 +100,9 @@ class case:
                                               self.beta_max)
 
         gamma_s = value_nbeta[0]
-        max_mean = beta_max/gamma_s
+        self.max_mean = beta_max/gamma_s
 
-        Ns = int(max_mean + 10*np.sqrt(max_mean) + 1)
+        Ns = int(self.max_mean + 10*np.sqrt(self.max_mean) + 1)
         N = np.array((4,2,Ns,Ns))
         self.N = N
 
@@ -113,8 +113,11 @@ class case:
         self.A = A_variable(beta_max,self.beta_T,value_nbeta,self.can_go_up,self.N,function)
         self.dt = .9/(np.abs(self.A.A_fixed.values).max()+beta_max)   
 
+        self.hex_code = hex_code
+
     
     def solver(self,t_init,T_finals,init=None):
+
         dt = self.dt
         if init is None:
             p = self.pinitial*1.0
@@ -129,16 +132,27 @@ class case:
                 p = self.solver(t,T,p)
                 pt.append(p)
                 t=T
-            return np.vstack(pt)
 
-    #def run_guillespie(self,Ts):
-    #    if isinstance(Ts,np.ndarray):
-    #        return np.stack([self.run_guillespie(t)[1] for t in Ts])
-    #    
-    #    return guillespie(self.initial,Ts,self.value)
+            stacked_pt = np.vstack(pt)
+
+            with open('variable_cases/cases_codes.txt', 'a') as file:
+                file.write(self.hex_code+ ','+ str(self.max_mean)+ ','+ str(self.value_nbeta[10]) +'  \n')
+            np.savetxt('variable_cases/'+self.hex_code+'_times.csv',T_finals)
+            np.savetxt('variable_cases/'+self.hex_code+'_probs.csv',stacked_pt)
+
+            return stacked_pt
+        
+
+
         
 
 def create_cases(bog,allo_rate=10,function='triangle'):
+    def hex_code(bog,allo_rate=0):
+        if allo_rate == 0:
+            return 'gg' +'0'+ hex( int(bog) )[2:]
+
+        return hex( int(np.log(allo_rate)*1000) )[2:] +'0'+ hex( int(bog) )[2:]
+
     init = np.array((0,  #A
                     0,  #B
                     0,  #P
@@ -179,4 +193,5 @@ def create_cases(bog,allo_rate=10,function='triangle'):
                                 1.  #gammaP
                                 ))
     
-    return case(init,allosteric_value[1:],bog,10.,function), case(init,non_allost_value[1:],bog,10.,function)
+    
+    return case(init, allosteric_value[1:], bog, 10., function, hex_code(bog,allo_rate)), case(init, non_allost_value[1:], bog, 10., function, hex_code(bog))
