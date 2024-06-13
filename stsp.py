@@ -41,25 +41,6 @@ def make_initial(initial,states,poisson_S=True):
     
     return p_ini/p_ini.sum()
 
-#old
-#remove by release
-
-def old_get_rate_matrix(value,S_ind,N):
-    rows_list,cols_list,vals_list=[],[],[]
-    for i in range(np.prod(N)):
-        cols = S_ind+i
-        vals = reactions.get_rates(index2state(i,*N),value,N)
-
-        keep = vals > 0
-        cols = cols[keep]
-        vals = vals[keep]
-        row = i*np.ones_like(cols)
-
-        rows_list.append(row)
-        cols_list.append(cols)
-        vals_list.append(vals)
-    return np.concatenate(rows_list),np.concatenate(cols_list),np.concatenate(vals_list)
-
 
 @njit
 def get_rate_matrix(value,S_ind,N):
