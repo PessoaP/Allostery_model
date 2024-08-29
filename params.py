@@ -16,6 +16,8 @@ def get_B(sm):
 
 @njit
 def solve(rho_init,B,omegaT):
+    if omegaT<1e-8:
+        return rho_init
     rho = rho_init
     log_pf = (-omegaT) #poisson factor log
     pf_cum = np.exp(log_pf)

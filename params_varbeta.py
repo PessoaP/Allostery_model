@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit
 import stsp
 import smn
+from basis import marginalize,expected,mutual_info
 
 @njit
 def triangle(t,beta_T,beta_max):
@@ -90,10 +91,6 @@ class A_variable:
     def arr_times_A(self,rho,t):
         return arr_times_A(rho,t,    self.beta_f,self.beta_T,self.beta_max,self.can_go_up,self.A_fixed)
 
-    ##To delete
-    #def evolve_RK(self,rho,t,dt):
-    #    return evolve_RK(rho,t,dt,    self.beta_f,self.beta_T,self.beta_max,self.can_go_up,self.A_fixed)
-    
     def solve(self,init,t_init,t_final):
         return RK_solve(init,t_init,t_final,self.dt,    self.beta_f,self.beta_T,self.beta_max,self.can_go_up,self.A_fixed)
 
@@ -126,16 +123,13 @@ class Bs:
 
         ##Do I cross a full period time?
         if t_init//T < t_final//T:            
-            #is there only one full time transition in between?
-            #if so starts active and end inactive
-            if (t_final-t_init)<self.turntimes.min()/2: 
-                pm = RMJP_solve(init,self.Bact,self.omega_act*(T-t_i)) #until T next multiple
-                return RMJP_solve(pm,self.Bina,self.omega_ina*(t_f)) #only remainder
-            #If not, cut in 'half' and solve pieces
-            tm = t_init + (t_final-t_init)/np.sqrt(2)
-            pm = self.solve(init,t_init,tm)
-            return self.solve(pm,tm,t_final)
-        
+            T_star = (t_init//T +1)*T
+            if t_init<self.turntimes[0]: #means it started inactive
+                pm = RMJP_solve(init,self.Bina,self.omega_ina*(self.turntimes[0]-t_i))
+                pm = RMJP_solve(pm,self.Bact,self.omega_act*(T-self.turntimes[0]))
+            else: #means it started active
+                pm = RMJP_solve(init,self.Bact,self.omega_act*(T-t_i))
+            return self.solve(pm,T_star,t_final)
 
         if t_i < self.turntimes[0]: #starts inactive
             if t_f < self.turntimes[0]:
@@ -168,11 +162,13 @@ class case:
         self.can_go_up = self.states[:,-1]!=(Ns-1)
         
 
-        if function == triangle:
+        if function in ['triangle']:
             self.Msolver = A_variable(beta_max,self.beta_T,value_nbeta,self.can_go_up,self.N,function)
 
         else:
             self.Msolver= Bs(beta_max,self.beta_T,value_nbeta,self.N)
+            #self.Msolver = A_variable(beta_max,self.beta_T,value_nbeta,self.can_go_up,self.N,function)
+
 
         self.hex_code = hex_code
 
@@ -186,7 +182,6 @@ class case:
 
         if isinstance(1.0*T_finals, float) or isinstance(1.0*T_finals, np.float64) or isinstance(1.0*T_finals, np.float32):
             return self.Msolver.solve(p,t_init,1.0*T_finals)
-        #               Matsolver
         
         else:
             t = 1.0*t_init
@@ -195,16 +190,28 @@ class case:
                 p = self.solver(t,T,p)
                 pt.append(p)
                 t=T
+                #print(t)
 
-            stacked_pt = np.vstack(pt)
+            #stacked_pt = np.vstack(pt)
+                
+            t = T_finals
+            bt = self.beta_f(T_finals)
+            S = [expected(*marginalize(p,self.states,3)) for p in pt]
+            P = [expected(*marginalize(p,self.states,2)) for p in pt]
+            MI = [mutual_info(*marginalize(p, self.states, [0,1]) ) for p in pt]
+
+            del pt
 
             with open('vcases/cases_codes.txt', 'a') as file:
                 file.write(self.hex_code+ ','+ str(self.max_mean)+ ','+ str(self.value_nbeta[10]) +'  \n')
-            np.savetxt('vcases/'+self.hex_code+'_times.csv',T_finals)
-            np.savetxt('vcases/'+self.hex_code+'_probs.csv',stacked_pt)
 
-            return stacked_pt
-        
+            
+            np.savetxt('vcases/'+self.hex_code+'_report.csv',np.vstack((t,bt,
+                                                                        np.array(S),
+                                                                        np.array(P),
+                                                                        np.array(MI))).T)
+            
+
 
 
         

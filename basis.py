@@ -22,7 +22,7 @@ def lexographic_compare(arr1,arr2):
             return -1 ##arr2 is smaller
     return 0 ##they are equal
 
-@njit
+#@njit
 def marginalize_1d(p,states,ind,reduced = False):
     s_eff = states[:,ind]
 
@@ -53,7 +53,6 @@ def entropy(p):
     ps = p[p!=0]
     return -np.sum(ps*np.log(ps))
 
-#@njit
 def mutual_info(s,p):
     ind = (p!=0)
     if not np.all(ind):

@@ -47,12 +47,6 @@ for bog in bog_list:
         bog_allo_list.append([bog,allo_rate])
         p_steady_list.append(p_steady_allo)
 
-    #allosteric,non_allosteric = params.create_cases(bog)
-    #p_steady_nonallo,tna = non_allosteric.find_steady()
-    #print('solved non-allosteric:',bog,tna)
-
-    #bog_allo_list.append([bog,np.nan])
-    #p_steady_list.append(p_steady_nonallo)
 
 bog_allo_arr = np.array(bog_allo_list)
 np.savetxt('fixed_steady/B_params.csv',bog_allo_arr)
