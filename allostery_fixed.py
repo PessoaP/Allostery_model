@@ -10,7 +10,8 @@ allo_rate_list = (10**log10_allo_rate_list)
 
 
 #for fig 2
-bog_list2 = np.arange(5,51)
+bog_list2 = np.concatenate((np.arange(10)/10,np.arange(10,30,2)/10,np.arange(3,30)))
+bog_list2[0] += 1e-3
 p_allo_list =[]
 p_nonallo_list =[]
 for bog in bog_list2:
@@ -25,6 +26,7 @@ for bog in bog_list2:
     p_steady_nonallo,tna = non_allosteric.find_steady()
     p_nonallo_list.append(p_steady_nonallo)
     print('solved non-allosteric:',bog,tna)
+    #print(p_allo_list)
     
 np.savetxt('fixed_steady/A_betas.csv',bog_list2)    
 p_allo_arr = np.array(pad_stack(p_allo_list))

@@ -54,7 +54,7 @@ class case:
         beta_s,gamma_s = value[:2]
         mean_steady = beta_s/gamma_s
 
-        Ns = int(mean_steady + 10*np.sqrt(mean_steady) + 1)
+        Ns = max(11,int(mean_steady + 10*np.sqrt(mean_steady) + 1))
         N = np.array((4,2,Ns,Ns))
         self.N = N
 
@@ -98,8 +98,8 @@ class case:
         is_steady=False
         t=0
         while not(is_steady):
-            p = self.solver(10,p)
             is_steady = self.found_steady_state(p)
+            p = self.solver(10,p)
             t+=10
         return p,t
     
