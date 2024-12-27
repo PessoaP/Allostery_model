@@ -54,8 +54,9 @@ def entropy(p):
     return -np.sum(ps*np.log(ps))
 
 def mutual_info(s,p):
+    #This assumes you already marginalized \sigma_A and B, it is a general mutual information function. 
     ind = (p!=0)
-    if not np.all(ind):
+    if np.any(~ind):
         return mutual_info(s[ind],p[ind])
 
     sa,pa = marginalize_1d(p,s,0)

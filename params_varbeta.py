@@ -116,28 +116,30 @@ class Bs:
         self.Bina,self.omega_ina = RMJP_get_B(Aina)
 
     def solve(self,init,t_init,t_final):
-        T = self.turntimes.sum() #time of full period
-
-        t_i = t_init%T
-        t_f = t_final%T
+        T = self.turntimes.sum()  # Period duration
+        
+        t_i = t_init % T  # Time within current period
 
         ##Do I cross a full period time?
         if t_init//T < t_final//T:            
-            T_star = (t_init//T +1)*T
-            if t_init<self.turntimes[0]: #means it started inactive
+            T_star = (t_init//T +1)*T #Period ends
+            if t_init<self.turntimes[0]: #Starts inactive, switches to active and complete period
                 pm = RMJP_solve(init,self.Bina,self.omega_ina*(self.turntimes[0]-t_i))
                 pm = RMJP_solve(pm,self.Bact,self.omega_act*(T-self.turntimes[0]))
-            else: #means it started active
+            else: #Starts active and complete period
                 pm = RMJP_solve(init,self.Bact,self.omega_act*(T-t_i))
-            return self.solve(pm,T_star,t_final)
+            return self.solve(pm,T_star,t_final) # Will solve, starting with current probability, the next period
+        
+        t_f = t_final % T  # End time within target period
 
-        if t_i < self.turntimes[0]: #starts inactive
-            if t_f < self.turntimes[0]:
+        # Handle within the final period
+        if t_i < self.turntimes[0]: #Starts inactive
+            if t_f < self.turntimes[0]: #Ends inactive
                 return RMJP_solve(init,self.Bina,self.omega_ina*(t_final-t_init))
-            else:
-                pm = RMJP_solve(init,self.Bina,self.omega_ina*(self.turntimes[0]-t_i)) #until T next multiple
-                return RMJP_solve(pm,self.Bact,self.omega_act*(t_f-self.turntimes[0])) #only remainder
-        else: #starts and ends active bc wont jump for first if
+            else: #Starts inactive, switches to active 
+                pm = RMJP_solve(init,self.Bina,self.omega_ina*(self.turntimes[0]-t_i)) 
+                return RMJP_solve(pm,self.Bact,self.omega_act*(t_f-self.turntimes[0])) 
+        else: #Starts and ends active, it will not move to the next period because of the first `if``
             return RMJP_solve(init,self.Bact,self.omega_act*(t_f-t_i)) 
 
 class case:
