@@ -26,7 +26,7 @@ dic = {'triangle': triangle,
        'varstep':varstep}
 
 @njit
-def guillespie(initial,T,value):
+def gillespie(initial,T,value):
     t = 0.
     x = initial
 
@@ -175,7 +175,7 @@ class case:
         self.hex_code = hex_code
 
     
-    def solver(self,t_init,T_finals,init=None):
+    def solver(self,t_init,T_finals,init=None,savefolder=None):
 
         if init is None:
             p = self.pinitial*1.0
@@ -198,32 +198,29 @@ class case:
                 
             t = T_finals
             bt = self.beta_f(T_finals)
-            S = [expected(*marginalize(p,self.states,3)) for p in pt]
-            P = [expected(*marginalize(p,self.states,2)) for p in pt]
+            S  = [expected(*marginalize(p,self.states,3)) for p in pt]
+            P  = [expected(*marginalize(p,self.states,2)) for p in pt]
             MI = [mutual_info(*marginalize(p, self.states, [0,1]) ) for p in pt]
 
             del pt
-
-            with open('vcases/cases_codes.txt', 'a') as file:
+            if savefolder is None:
+                return
+            
+            with open(savefolder+'/cases_codes.txt', 'a') as file:
                 file.write(self.hex_code+ ','+ str(self.max_mean)+ ','+ str(self.value_nbeta[10]) +'  \n')
 
-            
-            np.savetxt('vcases/'+self.hex_code+'_report.csv',np.vstack((t,bt,
-                                                                        np.array(S),
-                                                                        np.array(P),
-                                                                        np.array(MI))).T)
-            
+                
+            np.savetxt(savefolder+'/'+self.hex_code+'_report.csv',np.vstack((t,bt,
+                                                                            np.array(S),
+                                                                            np.array(P),
+                                                                            np.array(MI))).T)
+                
+def hex_code(bog,allo_rate=0,beta_T=10.):
+    if allo_rate == 0:
+        return 'gg' +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
+    return hex( int(np.log(allo_rate)*1000) )[2:] +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
 
-
-
-        
-
-def create_cases(bog,allo_rate=10,function='triangle',beta_T=10.):
-    def hex_code(bog,allo_rate=0):
-        if allo_rate == 0:
-            return 'gg' +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
-        return hex( int(np.log(allo_rate)*1000) )[2:] +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
-
+def V_create_cases(bog,V_allo_rate=10,function='triangle',beta_T=10.):
     init = np.array((0,  #A
                     0,  #B
                     0,  #P
@@ -241,7 +238,7 @@ def create_cases(bog,allo_rate=10,function='triangle',beta_T=10.):
                                 10., #alpha_s
                                 1.,  #alpha_sp
                                 1.,  #nu
-                                allo_rate*1.0, #nup
+                                V_allo_rate*1.0, #nup
                                 1.,  #kBon
                                 1.,  #kBoff
                                 1.   #gammaP
@@ -257,7 +254,7 @@ def create_cases(bog,allo_rate=10,function='triangle',beta_T=10.):
                                 0,  #alphap
                                 0., #alpha_s
                                 0., #alpha_sp
-                                (1.+allo_rate),  #nu
+                                (1.+V_allo_rate),  #nu
                                 0., #nup
                                 1., #kBon
                                 1., #kBoff
@@ -265,5 +262,49 @@ def create_cases(bog,allo_rate=10,function='triangle',beta_T=10.):
                                 ))
     
     
-    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,allo_rate)), 
-            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog)) )
+    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,beta_T)), 
+            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,beta_T=beta_T)) )
+
+def K_create_cases(bog,K_allo_rate=10,function='triangle',beta_T=10.):
+    init = np.array((0,  #A
+                    0,  #B
+                    0,  #P
+                    bog*1.0 #S
+                    ))
+    
+    allosteric_value = np.array((bog*1.0, #beta_s
+                                1.,   #gamma_s
+                                1,  #kAon
+                                1,  #kAoff
+                                K_allo_rate*1.0,  #kApon
+                                1.,  #kApoff
+                                1.,  #alpha
+                                4.,  #alphap
+                                10.,  #alpha_s
+                                1.,  #alpha_sp
+                                1.,  #nu
+                                10, #nup
+                                1., #kBon
+                                1., #kBoff
+                                1.  #gammaP
+                                ))
+
+    non_allost_value = np.array((bog*1.0, #beta_s
+                                1.,   #gamma_s
+                                (1+K_allo_rate),  #kAon
+                                2,  #kAoff
+                                0,  #kApon
+                                0,  #kApoff
+                                0.,  #alpha
+                                0,  #alphap
+                                0.,  #alpha_s
+                                0.,  #alpha_sp
+                                11,  #nu
+                                0., #nup
+                                1., #kBon
+                                1., #kBoff
+                                1.  #gammaP
+                                ))
+    
+    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,K_allo_rate,beta_T)), 
+            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,beta_T=beta_T)) )

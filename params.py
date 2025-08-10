@@ -103,7 +103,7 @@ class case:
             t+=10
         return p,t
     
-def create_cases(bog,allo_rate=10):
+def V_create_cases(bog,V_allo_rate=10):
     init = np.array((0,  #A
                     0,  #B
                     0,  #P
@@ -121,7 +121,7 @@ def create_cases(bog,allo_rate=10):
                                 10.,  #alpha_s
                                 1.,  #alpha_sp
                                 1.,  #nu
-                                allo_rate*1.0, #nup
+                                V_allo_rate*1.0, #nup
                                 1., #kBon
                                 1., #kBoff
                                 1.  #gammaP
@@ -137,7 +137,50 @@ def create_cases(bog,allo_rate=10):
                                 0,  #alphap
                                 0.,  #alpha_s
                                 0.,  #alpha_sp
-                                (1.+allo_rate),  #nu
+                                (1.+V_allo_rate),  #nu
+                                0., #nup
+                                1., #kBon
+                                1., #kBoff
+                                1.  #gammaP
+                                ))
+    
+    return case(init,allosteric_value), case(init,non_allost_value)
+
+def K_create_cases(bog,K_allo_rate=10):
+    init = np.array((0,  #A
+                    0,  #B
+                    0,  #P
+                    bog*1.0 #S
+                    ))
+    
+    allosteric_value = np.array((bog*1.0, #beta_s
+                                1.,   #gamma_s
+                                1,  #kAon
+                                1,  #kAoff
+                                K_allo_rate*1.0,  #kApon
+                                1.,  #kApoff
+                                1.,  #alpha
+                                4.,  #alphap
+                                10.,  #alpha_s
+                                1.,  #alpha_sp
+                                1.,  #nu
+                                10, #nup
+                                1., #kBon
+                                1., #kBoff
+                                1.  #gammaP
+                                ))
+
+    non_allost_value = np.array((bog*1.0, #beta_s
+                                1.,   #gamma_s
+                                (1+K_allo_rate),  #kAon
+                                2,  #kAoff
+                                0,  #kApon
+                                0,  #kApoff
+                                0.,  #alpha
+                                0,  #alphap
+                                0.,  #alpha_s
+                                0.,  #alpha_sp
+                                11,  #nu
                                 0., #nup
                                 1., #kBon
                                 1., #kBoff
