@@ -44,6 +44,7 @@ for folder,create_case in zip(folders,cases_gen):
 
 
     #Fig3
+for folder,create_case in zip(folders,cases_gen):
     bog_list = np.arange(8,1,-1)*10.
     #log10_allo_rate_list = np.concatenate((np.linspace(-3,0,17)[:-1],np.linspace(0,3,23)))
     log10_allo_rate_list = np.linspace(-3,3,25)
@@ -56,7 +57,6 @@ for folder,create_case in zip(folders,cases_gen):
     P_list = [] 
 
     for bog in bog_list:
-
         for allo_rate in allo_rate_list:
             allosteric,_ = create_case(bog,allo_rate)
 

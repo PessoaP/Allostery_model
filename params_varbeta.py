@@ -215,7 +215,7 @@ class case:
                                                                             np.array(P),
                                                                             np.array(MI))).T)
                 
-def hex_code(bog,allo_rate=0,beta_T=10.):
+def hex_code(bog,allo_rate=0,function='',beta_T=10.):
     if allo_rate == 0:
         return 'gg' +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
     return hex( int(np.log(allo_rate)*1000) )[2:] +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
@@ -262,8 +262,8 @@ def V_create_cases(bog,V_allo_rate=10,function='triangle',beta_T=10.):
                                 ))
     
     
-    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,beta_T)), 
-            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,beta_T=beta_T)) )
+    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,function,beta_T)), 
+            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,function=function,beta_T=beta_T)) )
 
 def K_create_cases(bog,K_allo_rate=10,function='triangle',beta_T=10.):
     init = np.array((0,  #A
@@ -306,5 +306,5 @@ def K_create_cases(bog,K_allo_rate=10,function='triangle',beta_T=10.):
                                 1.  #gammaP
                                 ))
     
-    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,K_allo_rate,beta_T)), 
-            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,beta_T=beta_T)) )
+    return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,K_allo_rate,function,beta_T)), 
+            case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,function=function,beta_T=beta_T)) )

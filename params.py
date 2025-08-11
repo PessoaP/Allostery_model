@@ -36,7 +36,7 @@ def solve(rho_init,B,omegaT):
     return ans
 
 @njit
-def guillespie(initial,T,value):
+def gillespie(initial,T,value):
     t = 0.
     x = initial
 
@@ -83,11 +83,11 @@ class case:
                 t=T
             return np.vstack(pt)
 
-    def run_guillespie(self,Ts):
+    def run_gillespie(self,Ts):
         if isinstance(Ts,np.ndarray):
-            return np.stack([self.run_guillespie(t)[1] for t in Ts])
+            return np.stack([self.run_gillespie(t)[1] for t in Ts])
         
-        return guillespie(self.initial,Ts,self.value)
+        return gillespie(self.initial,Ts,self.value)
     
     def found_steady_state(self,p,tol=1e-12):
         pA_overomega = (smn.array_times_sm(p,self.B)-p)
