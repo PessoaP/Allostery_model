@@ -1,78 +1,79 @@
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from itertools import product
+
 import numpy as np
 import params
 from basis import *
 import os
-
+import random
 
 pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - arr.size), 'constant') for arr in lis])
 
-#Separating V and K allostery
-folders = ['Kallostery','Vallostery']
-cases_gen = [params.K_create_cases,params.V_create_cases]
+def _worker(idx, bog, allo_rate,create_case):
+    print('running',idx,bog,allo_rate)
+    # create everything inside the worker to avoid pickling big globals
+    allosteric, _ = create_case(bog, allo_rate)
+    p_steady_allo, ta = allosteric.find_steady()
+    print(idx, 'case made')
 
-for folder,create_case in zip(folders,cases_gen):
+    MI = mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]))
+    S  = expected(*marginalize(p_steady_allo, allosteric.states, 3))
+    P  = expected(*marginalize(p_steady_allo, allosteric.states, 2))
+
+    # return only lightweight objects
+    return (idx, bog, allo_rate, ta, MI, S, P, p_steady_allo)
+
+def run_all(folder,create_case):
     os.makedirs(folder+'fcases', exist_ok=True)
+
+    bog_list = np.arange(1,9)*10.0
+    log10_allo_rate_list = np.linspace(-3,3,31)
     
-    #Fig 2
-    bog_list2 = np.concatenate((np.arange(10)/10,np.arange(10,30,2)/10,np.arange(3,30)))
-    bog_list2[0] += 1e-3
-    p_allo_list =[]
-    p_nonallo_list =[]
-    MI_allo = []
-    MI_nonallo =[]
-    
-    for bog in bog_list2:
-        allosteric,non_allosteric = create_case(bog)
-
-        p_steady_allo,tna = allosteric.find_steady()
-        p_allo_list.append(p_steady_allo)
-        MI_allo.append(mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]) ))
-        print('solved allosteric:    ',bog,tna)
-
-        p_steady_nonallo,tna = non_allosteric.find_steady()
-        p_nonallo_list.append(p_steady_nonallo)
-        MI_nonallo.append(mutual_info(*marginalize(p_steady_nonallo, non_allosteric.states, [0,1]) ))
-        print('solved non-allosteric:',bog,tna)
-        
-    np.savetxt(folder+'fcases/A_MI.csv',np.array((bog_list2,MI_allo,MI_nonallo)).T)    
-
-    p_allo_arr = np.array(pad_stack(p_allo_list))
-    np.savetxt(folder+'fcases/A_allo_steady.csv',p_allo_arr)    
-
-    p_nonallo_arr = np.array(pad_stack(p_nonallo_list))
-    np.savetxt(folder+'fcases/A_nonallo_steady.csv',p_nonallo_arr)    
-
-
-    #Fig3
-for folder,create_case in zip(folders,cases_gen):
-    bog_list = np.arange(8,1,-1)*10.
-    #log10_allo_rate_list = np.concatenate((np.linspace(-3,0,17)[:-1],np.linspace(0,3,23)))
-    log10_allo_rate_list = np.linspace(-3,3,25)
+    #bog_list=[10,20]
+    #log10_allo_rate_list = np.linspace(-3,1,15)
     allo_rate_list = (10**log10_allo_rate_list)
 
-    p_steady_list =[]
-    bog_allo_list =[]
-    MI_list =[]
-    S_list = []
-    P_list = [] 
+    grid = [(i, b, a) for i, (b, a) in enumerate(product(bog_list, allo_rate_list))]
+    #random.shuffle(grid)
+    n = len(grid)
 
-    for bog in bog_list:
-        for allo_rate in allo_rate_list:
-            allosteric,_ = create_case(bog,allo_rate)
+    # pre-allocate holders (to preserve ordering)
+    bog_allo_arr = np.zeros((n, 2), dtype=float)
+    MI_arr = np.zeros(n, dtype=float)
+    S_arr  = np.zeros(n, dtype=float)
+    P_arr  = np.zeros(n, dtype=float)
+    steadies = [None]*n
 
-            p_steady_allo,ta = allosteric.find_steady()
-            print('solved', folder, ':',bog,allo_rate,ta)
+    # use up to all CPUs, tweak if you want to leave one free
+    maxw = os.cpu_count()-1 or 1
+    print('Starting with {} kernels'.format(maxw))
 
-            bog_allo_list.append([bog,allo_rate])
-            p_steady_list.append(p_steady_allo)
+    with ProcessPoolExecutor(max_workers=maxw) as ex:
+        futures = [ex.submit(_worker, 
+                             args[0], args[1], args[2],
+                             create_case) for args in grid]
+        for fut in as_completed(futures):
+            idx, bog, allo_rate, ta, MI, S, P, p_steady = fut.result()
+            # optional: live log (won’t be strictly ordered)
+            print('solved', folder, ':', bog, allo_rate, ta)
+            bog_allo_arr[idx] = (bog, allo_rate)
+            MI_arr[idx] = MI
+            S_arr[idx]  = S
+            P_arr[idx]  = P
+            steadies[idx] = p_steady
 
-            MI_list.append(mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]) ))
-            S_list.append(expected(*marginalize(p_steady_allo, allosteric.states, 3)))
-            P_list.append(expected(*marginalize(p_steady_allo, allosteric.states, 2)))
+    # save summaries
+    out_summary = np.hstack([bog_allo_arr, MI_arr[:,None], S_arr[:,None], P_arr[:,None]])
+    np.savetxt(folder+'fcases/B_report.csv', out_summary)
 
-    np.savetxt(folder+'fcases/B_report.csv',np.hstack((np.array(bog_allo_list),
-                                                       np.array((MI_list,S_list,P_list)).T )) )    
+    # pad + save steady states
+    p_steady_arr = np.array(pad_stack(steadies))
+    np.savetxt(folder+'fcases/B_steady.csv', p_steady_arr)
 
+if __name__ == "__main__":
+    #Separating V and K allostery
+    folders = ['Kallostery','Vallostery']
+    cases_gen = [params.K_create_cases,params.V_create_cases]
 
-    p_steady_arr = np.array(pad_stack(p_steady_list))
-    np.savetxt(folder+'fcases/B_steady.csv',p_steady_arr)
+    for folder,create_case in zip(folders,cases_gen):
+        run_all(folder,create_case)

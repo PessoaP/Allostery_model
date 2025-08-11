@@ -206,8 +206,8 @@ class case:
             if savefolder is None:
                 return
             
-            with open(savefolder+'/cases_codes.txt', 'a') as file:
-                file.write(self.hex_code+ ','+ str(self.max_mean)+ ','+ str(self.value_nbeta[10]) +'  \n')
+            #with open(savefolder+'/cases_codes.txt', 'a') as file:
+            #    file.write(self.hex_code+ ','+ str(self.max_mean)+ ','+ str(self.value_nbeta[10]) +'  \n')
 
                 
             np.savetxt(savefolder+'/'+self.hex_code+'_report.csv',np.vstack((t,bt,
@@ -217,8 +217,8 @@ class case:
                 
 def hex_code(bog,allo_rate=0,function='',beta_T=10.):
     if allo_rate == 0:
-        return 'gg' +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
-    return hex( int(np.log(allo_rate)*1000) )[2:] +'0'+ hex( int(bog) )[2:] + ',' + function + ',' + str(beta_T)
+        return 'nonallo'  + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
+    return str(allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
 
 def V_create_cases(bog,V_allo_rate=10,function='triangle',beta_T=10.):
     init = np.array((0,  #A
