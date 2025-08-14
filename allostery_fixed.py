@@ -28,13 +28,9 @@ def run_all(folder,create_case):
 
     bog_list = np.arange(1,9)*10.0
     log10_allo_rate_list = np.linspace(-3,3,31)
-    
-    #bog_list=[10,20]
-    #log10_allo_rate_list = np.linspace(-3,1,15)
     allo_rate_list = (10**log10_allo_rate_list)
 
     grid = [(i, b, a) for i, (b, a) in enumerate(product(bog_list, allo_rate_list))]
-    #random.shuffle(grid)
     n = len(grid)
 
     # pre-allocate holders (to preserve ordering)
@@ -72,8 +68,16 @@ def run_all(folder,create_case):
 
 if __name__ == "__main__":
     #Separating V and K allostery
-    folders = ['Kallostery','Vallostery']
-    cases_gen = [params.K_create_cases,params.V_create_cases]
+    folders = ['V_?_K_1_allostery',
+               'V_?_K_10_allostery',
+               'V_1_K_?_allostery',
+               'V_10_K_?_allostery']
+
+    cases_gen = [lambda bog,ar: params.create_cases(bog,V_allo_rate=ar,K_allo_rate=1 ),
+                 lambda bog,ar: params.create_cases(bog,V_allo_rate=ar,K_allo_rate=10),
+                 lambda bog,ar: params.create_cases(bog,V_allo_rate=1 ,K_allo_rate=ar),
+                 lambda bog,ar: params.create_cases(bog,V_allo_rate=10,K_allo_rate=ar)]
+
 
     for folder,create_case in zip(folders,cases_gen):
         run_all(folder,create_case)

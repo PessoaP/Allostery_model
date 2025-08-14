@@ -56,9 +56,6 @@ def Gillespie_evolve(x,t,value):
     x = jump(x,r,St)
     return t+dt,x
 
-
-
-
 St_nbeta = St[1:]
 St_beta = St[0]
 
