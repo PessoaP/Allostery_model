@@ -28,12 +28,12 @@ def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or
     ]
     tasks += [
         [create_case, b, ar,10, shape, params, folder] #Vallostery K=10
-        for ar in allo_rate[allo_rate !=1]  # Exclude 1 to avoid duplicates
+        for ar in allo_rate[allo_rate != 1]  # Exclude 1 to avoid duplicates
         for (b, shape, params) in param_sets
     ]
     tasks += [
         [create_case, b,10, ar, shape, params, folder] #Kallostery K=10
-        for ar in allo_rate[allo_rate !=1]  # Exclude 1 to avoid duplicates
+        for ar in allo_rate[allo_rate != 1]  # Exclude 1 to avoid duplicates
         for (b, shape, params) in param_sets
     ]
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     allo_rate = np.array([1,10,20])
     allo_rate = np.sort(np.concatenate((allo_rate,1/allo_rate[1:])))
 
-    param_sets = [(bog,      'triangle', 10),
+    param_sets = [(bog,     'triangle', 10),
                   (bog,      'varstep', np.array((18., 2.))),
                   (bog,      'varstep', np.array(( 5., 5.))),    
                   (bog,      'varstep', np.array(( 7., 3.))),

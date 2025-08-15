@@ -16,10 +16,10 @@ cases_gen = [lambda bog: params.create_cases(bog,V_allo_rate=1,K_allo_rate=10),
              lambda bog: params.create_cases(bog,V_allo_rate=1,K_allo_rate=10),
              lambda bog: params.create_cases(bog,V_allo_rate=10,K_allo_rate=10)]
 
-non_cases = [lambda bog: params.nonallo_case(bog,V_allo_rate=1,K_allo_rate=10),
-             lambda bog: params.nonallo_case(bog,V_allo_rate=10,K_allo_rate=10),
-             lambda bog: params.nonallo_case(bog,V_allo_rate=1,K_allo_rate=10),
-             lambda bog: params.nonallo_case(bog,V_allo_rate=10,K_allo_rate=10)]
+non_cases = [lambda bog: params.nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=10),
+             lambda bog: params.nonallo_case(bog,eqV_allo_rate=10,eqK_allo_rate=10),
+             lambda bog: params.nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=10),
+             lambda bog: params.nonallo_case(bog,eqV_allo_rate=10,eqK_allo_rate=10)]
 
 
 for folder,create_case,non_case in zip(folders,cases_gen,non_cases):

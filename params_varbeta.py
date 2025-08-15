@@ -212,100 +212,10 @@ class case:
                                                                             np.array(P),
                                                                             np.array(MI))).T)
                 
-def hex_code(bog,allo_rate=0,function='',beta_T=10.):
-    if allo_rate == 0:
-        return 'nonallo'  + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
-    return str(allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
-
-# def V_create_cases(bog,V_allo_rate=10,function='triangle',beta_T=10.):
-#     init = np.array((0,  #A
-#                     0,  #B
-#                     0,  #P
-#                     bog*1.0 #S
-#                     ))
-    
-#     allosteric_value = np.array((bog*1.0, #beta_s
-#                                 1.,  #gamma_s
-#                                 1,   #kAon
-#                                 1,   #kAoff
-#                                 10,  #kApon
-#                                 1.,  #kApoff
-#                                 1.,  #alpha
-#                                 4.,  #alphap
-#                                 10., #alpha_s
-#                                 1.,  #alpha_sp
-#                                 1.,  #nu
-#                                 V_allo_rate*1.0, #nup
-#                                 1.,  #kBon
-#                                 1.,  #kBoff
-#                                 1.   #gammaP
-#                                 ))
-
-#     non_allost_value = np.array((bog*1.0, #beta_s
-#                                 1., #gamma_s
-#                                 11, #kAon
-#                                 2,  #kAoff
-#                                 0,  #kApon
-#                                 0,  #kApoff
-#                                 0., #alpha
-#                                 0,  #alphap
-#                                 0., #alpha_s
-#                                 0., #alpha_sp
-#                                 (1.+V_allo_rate),  #nu
-#                                 0., #nup
-#                                 1., #kBon
-#                                 1., #kBoff
-#                                 1.  #gammaP
-#                                 ))
-    
-    
-#     return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,function,beta_T)), 
-#             case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,function=function,beta_T=beta_T)) )
-
-# def K_create_cases(bog,K_allo_rate=10,function='triangle',beta_T=10.):
-#     init = np.array((0,  #A
-#                     0,  #B
-#                     0,  #P
-#                     bog*1.0 #S
-#                     ))
-    
-#     allosteric_value = np.array((bog*1.0, #beta_s
-#                                 1.,   #gamma_s
-#                                 1,  #kAon
-#                                 1,  #kAoff
-#                                 K_allo_rate*1.0,  #kApon
-#                                 1.,  #kApoff
-#                                 1.,  #alpha
-#                                 4.,  #alphap
-#                                 10.,  #alpha_s
-#                                 1.,  #alpha_sp
-#                                 1.,  #nu
-#                                 10, #nup
-#                                 1., #kBon
-#                                 1., #kBoff
-#                                 1.  #gammaP
-#                                 ))
-
-#     non_allost_value = np.array((bog*1.0, #beta_s
-#                                 1.,   #gamma_s
-#                                 (1+K_allo_rate),  #kAon
-#                                 2,  #kAoff
-#                                 0,  #kApon
-#                                 0,  #kApoff
-#                                 0.,  #alpha
-#                                 0,  #alphap
-#                                 0.,  #alpha_s
-#                                 0.,  #alpha_sp
-#                                 11,  #nu
-#                                 0., #nup
-#                                 1., #kBon
-#                                 1., #kBoff
-#                                 1.  #gammaP
-#                                 ))
-    
-#     return (case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,K_allo_rate,function,beta_T)), 
-#             case(init, non_allost_value[1:], bog, beta_T, function, hex_code(bog,function=function,beta_T=beta_T)) )
-
+def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
+    #if allo_rate == 0:
+    #    return 'nonallo'  + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
+    return 'V=' + str(K_allo_rate) + 'K=' + str(V_allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     
 def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.):
     init = np.array((0,  #A
@@ -331,4 +241,4 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.)
                                 1  #gammaP
                                 ))
     
-    return case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,K_allo_rate,V_allo_rate,function,beta_T)), 
+    return case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T)), 
