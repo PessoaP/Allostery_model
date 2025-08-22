@@ -12,7 +12,7 @@ pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - 
 def _worker(idx, bog, allo_rate,create_case):
     print('running',idx,bog,allo_rate)
     # create everything inside the worker to avoid pickling big globals
-    allosteric, _ = create_case(bog, allo_rate)
+    allosteric = create_case(bog, allo_rate)
     p_steady_allo, ta = allosteric.find_steady()
     print(idx, 'case made')
 
@@ -73,11 +73,16 @@ if __name__ == "__main__":
                'V_1_K_?_allostery',
                'V_10_K_?_allostery']
 
-    cases_gen = [lambda bog,ar: params.create_cases(bog,V_allo_rate=ar,K_allo_rate=1 ),
-                 lambda bog,ar: params.create_cases(bog,V_allo_rate=ar,K_allo_rate=10),
-                 lambda bog,ar: params.create_cases(bog,V_allo_rate=1 ,K_allo_rate=ar),
-                 lambda bog,ar: params.create_cases(bog,V_allo_rate=10,K_allo_rate=ar)]
-
+    def case_al_1(bog, ar):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1)
+    def case_al_10(bog, ar):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=10)         
+    def case_kl_1(bog, ar):
+        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar)
+    def case_kl_10(bog, ar):
+        return params.create_cases(bog, V_allo_rate=10, K_allo_rate=ar)
+    
+    cases_gen = [case_al_1, case_al_10, case_kl_1, case_kl_10]
 
     for folder,create_case in zip(folders,cases_gen):
         run_all(folder,create_case)

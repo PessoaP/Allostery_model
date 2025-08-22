@@ -22,7 +22,7 @@ def make_stsp(initial,N):
         states[i] = index2state(i,N[0],N[1],N[2],N[3])
     return states
 
-#@njit
+
 def make_initial(initial,states,poisson_S=True):
     I = states.shape[0]
     p_ini = np.zeros(I)

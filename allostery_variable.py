@@ -17,23 +17,23 @@ def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or
     print('Starting with {} kernels'.format(maxw))
 
     tasks = [
-        [create_case, b, ar, 1, shape, params, folder] #Vallostery K=1
+        [create_case, b, ar, 1., shape, params, folder] #Vallostery K=1
         for ar in allo_rate
         for (b, shape, params) in param_sets
     ]
     tasks += [
-        [create_case, b, 1, ar, shape, params, folder] #Kallostery V=1
-        for ar in allo_rate
+        [create_case, b, 1., ar, shape, params, folder] #Kallostery V=1
+        for ar in allo_rate[allo_rate != 1.]
         for (b, shape, params) in param_sets
     ]
     tasks += [
-        [create_case, b, ar,10, shape, params, folder] #Vallostery K=10
-        for ar in allo_rate[allo_rate != 1]  # Exclude 1 to avoid duplicates
+        [create_case, b, ar,10., shape, params, folder] #Vallostery K=10
+        for ar in allo_rate[allo_rate != 1.]  # Exclude 1 to avoid duplicates
         for (b, shape, params) in param_sets
     ]
     tasks += [
-        [create_case, b,10, ar, shape, params, folder] #Kallostery K=10
-        for ar in allo_rate[allo_rate != 1]  # Exclude 1 to avoid duplicates
+        [create_case, b,10., ar, shape, params, folder] #Kallostery K=10
+        for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.)]  # Exclude 1 to avoid duplicates
         for (b, shape, params) in param_sets
     ]
 
@@ -58,12 +58,11 @@ if __name__ == "__main__":
     allo_rate = np.sort(np.concatenate((allo_rate,1/allo_rate[1:])))
 
     param_sets = [(bog,     'triangle', 10),
-                  (bog,      'varstep', np.array((18., 2.))),
-                  (bog,      'varstep', np.array(( 5., 5.))),    
-                  (bog,      'varstep', np.array(( 7., 3.))),
-                  (bog,      'varstep', np.array(( 9., 1.))),
+                  (bog,      'varstep', np.array((2., 18.))),
+                  (bog,      'varstep', np.array((6., 14.))),
                   (bog,      'varstep', np.array((10.,10.))),
                   (bog,      'varstep', np.array((14., 6.))),
+                  (bog,      'varstep', np.array((18., 2.))),
                   ]
                 
     
