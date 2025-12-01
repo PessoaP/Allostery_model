@@ -5,21 +5,33 @@ import os
 
 pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - arr.size), 'constant') for arr in lis])
 
-#Separating V and K allostery
-folders = ['V_1_K_1_allostery',
-           'V_10_K_1_allostery',
-           'V_1_K_10_allostery',
-           'V_10_K_10_allostery']
+import itertools
 
-cases_gen = [lambda bog: params.create_cases(bog,V_allo_rate=1,K_allo_rate=10),
-             lambda bog: params.create_cases(bog,V_allo_rate=10,K_allo_rate=10),
-             lambda bog: params.create_cases(bog,V_allo_rate=1,K_allo_rate=10),
-             lambda bog: params.create_cases(bog,V_allo_rate=10,K_allo_rate=10)]
+vals = [.1, 1, 10]
 
-non_cases = [lambda bog: params.nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=10),
-             lambda bog: params.nonallo_case(bog,eqV_allo_rate=10,eqK_allo_rate=10),
-             lambda bog: params.nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=10),
-             lambda bog: params.nonallo_case(bog,eqV_allo_rate=10,eqK_allo_rate=10)]
+def fmt(x):
+    """Format number into folder string style."""
+    return str(x) if x >= 1 else ".1"
+
+folders = []
+cases_gen = []
+non_cases = []
+
+for V, K in itertools.product(vals, vals):
+    folders.append(f"V_{fmt(V)}_K_{fmt(K)}_allostery")
+
+    cases_gen.append(
+        lambda bog, V=V, K=K: params.create_cases(
+            bog, V_allo_rate=V, K_allo_rate=K
+        )
+    )
+
+    non_cases.append(
+        lambda bog, V=V, K=K: params.nonallo_case(
+            bog, eqV_allo_rate=V, eqK_allo_rate=K
+        )
+    )
+
 
 
 for folder,create_case,non_case in zip(folders,cases_gen,non_cases):
