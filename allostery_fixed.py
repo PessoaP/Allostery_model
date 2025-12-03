@@ -20,7 +20,6 @@ def _worker(idx, bog, allo_rate,create_case):
     S  = expected(*marginalize(p_steady_allo, allosteric.states, 3))
     P  = expected(*marginalize(p_steady_allo, allosteric.states, 2))
 
-    # return only lightweight objects
     return (idx, bog, allo_rate, ta, MI, S, P, p_steady_allo)
 
 def run_all(folder,create_case):
