@@ -23,7 +23,7 @@ def solve(rho_init,B,omegaT):
     pf_cum = np.exp(log_pf)
 
     ans = rho*np.exp(log_pf)
-    lim = max(omegaT+6*np.sqrt(omegaT),5)
+    lim = max(omegaT+6*np.sqrt(omegaT),0) +5
     for k in np.arange(1,lim):
         log_pf  += np.log(omegaT/k)
         pf = np.exp(log_pf)
@@ -119,8 +119,8 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1):
                                 K_allo_rate*1.0,  #kApon
                                 1,  #kApoff
                                 1,  #alpha
-                                4,  #alphap
-                                2,  #alpha_s
+                                2,  #alphap
+                                4,  #alpha_s
                                 1,  #alpha_sp
                                 1,  #nu
                                 V_allo_rate*1.0, #nup
@@ -131,28 +131,3 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1):
     
     return case(init,allosteric_value)
 
-# def nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=1):
-#     init = np.array((0,  #A
-#                     0,  #B
-#                     0,  #P
-#                     bog*1.0 #S
-#                     ))
-    
-#     value = np.array((bog*1.0, #beta_s
-#                       1,   #gamma_s
-#                       1 + eqK_allo_rate*1.0,  #kAon
-#                       1,  #kAoff
-#                       0,  #kApon
-#                       0,  #kApoff
-#                       0,  #alpha
-#                       0,  #alphap
-#                       0,  #alpha_s
-#                       0,  #alpha_sp
-#                       1. + eqV_allo_rate*1.0,  #nu
-#                       0, #nup
-#                       1, #kBon
-#                       1, #kBoff
-#                       1  #gammaP
-#                       ))
-    
-#     return case(init,value)

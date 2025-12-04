@@ -48,9 +48,6 @@ def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or
         for (b, shape, params) in param_sets
     ]
 
-    for t in tasks:
-        print(t)
-
     done = 0
     total = len(tasks)
     print('{} tasks total'.format(total))
