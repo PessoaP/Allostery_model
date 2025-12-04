@@ -131,28 +131,28 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1):
     
     return case(init,allosteric_value)
 
-def nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=1):
-    init = np.array((0,  #A
-                    0,  #B
-                    0,  #P
-                    bog*1.0 #S
-                    ))
+# def nonallo_case(bog,eqV_allo_rate=1,eqK_allo_rate=1):
+#     init = np.array((0,  #A
+#                     0,  #B
+#                     0,  #P
+#                     bog*1.0 #S
+#                     ))
     
-    value = np.array((bog*1.0, #beta_s
-                      1,   #gamma_s
-                      1 + eqK_allo_rate*1.0,  #kAon
-                      1,  #kAoff
-                      0,  #kApon
-                      0,  #kApoff
-                      0,  #alpha
-                      0,  #alphap
-                      0,  #alpha_s
-                      0,  #alpha_sp
-                      1. + eqV_allo_rate*1.0,  #nu
-                      0, #nup
-                      1, #kBon
-                      1, #kBoff
-                      1  #gammaP
-                      ))
+#     value = np.array((bog*1.0, #beta_s
+#                       1,   #gamma_s
+#                       1 + eqK_allo_rate*1.0,  #kAon
+#                       1,  #kAoff
+#                       0,  #kApon
+#                       0,  #kApoff
+#                       0,  #alpha
+#                       0,  #alphap
+#                       0,  #alpha_s
+#                       0,  #alpha_sp
+#                       1. + eqV_allo_rate*1.0,  #nu
+#                       0, #nup
+#                       1, #kBon
+#                       1, #kBoff
+#                       1  #gammaP
+#                       ))
     
-    return case(init,value)
+#     return case(init,value)

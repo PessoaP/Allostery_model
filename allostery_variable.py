@@ -16,28 +16,38 @@ def _worker(create_case, beta, V_allo_rate, K_allo_rate, shape, params, folder):
 def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or 1):
     print('Starting with {} kernels'.format(maxw))
 
-    tasks = [
-        [create_case, b, ar, 1., shape, params, folder] #Vallostery K=1
+    tasks = []
+    tasks += [
+        [create_case, b, ar, 1., shape, params, folder]  # V allostery, K = 1
         for ar in allo_rate
         for (b, shape, params) in param_sets
     ]
     tasks += [
-        [create_case, b, 1., ar, shape, params, folder] #Kallostery V=1
+        [create_case, b, 1., ar, shape, params, folder]  # K allostery, V = 1
         for ar in allo_rate[allo_rate != 1.]
         for (b, shape, params) in param_sets
     ]
     tasks += [
-        [create_case, b, ar,10., shape, params, folder] #Vallostery K=10
-        for ar in allo_rate[allo_rate != 1.]  # Exclude 1 to avoid duplicates
+        [create_case, b, ar, 10., shape, params, folder]  # V allostery, K = 10
+        for ar in allo_rate[allo_rate != 1.]
         for (b, shape, params) in param_sets
     ]
     tasks += [
-        [create_case, b,10., ar, shape, params, folder] #Kallostery V=10
-        for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.)]  # Exclude 1 to avoid duplicates
+        [create_case, b, 10., ar, shape, params, folder]  # K allostery, V = 10
+        for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.)]
+        for (b, shape, params) in param_sets
+    ]
+    tasks += [
+        [create_case, b, ar, 0.1, shape, params, folder]  # V allostery, K = 0.1
+        for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.)]
+        for (b, shape, params) in param_sets
+    ]
+    tasks += [
+        [create_case, b, 0.1, ar, shape, params, folder]  # K allostery, V = 0.1
+        for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.) & (allo_rate != 0.1)]
         for (b, shape, params) in param_sets
     ]
 
-    
     for t in tasks:
         print(t)
 

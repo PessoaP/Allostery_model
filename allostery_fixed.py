@@ -67,8 +67,10 @@ def run_all(folder,create_case):
 
 if __name__ == "__main__":
     #Separating V and K allostery
-    folders = ['V_?_K_1_allostery',
+    folders = ['V_?_K_.1_allostery',
+               'V_?_K_1_allostery',
                'V_?_K_10_allostery',
+               'V_.1_K_?_allostery',
                'V_1_K_?_allostery',
                'V_10_K_?_allostery']
     def case_al_p1(bog, ar):
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     def case_kl_10(bog, ar):
         return params.create_cases(bog, V_allo_rate=10, K_allo_rate=ar)
     
-    cases_gen = [case_al_1, case_al_10, case_kl_1, case_kl_10]
+    cases_gen = [case_al_p1,case_al_1, case_al_10, case_kl_p1, case_kl_1, case_kl_10]
 
     for folder,create_case in zip(folders,cases_gen):
         run_all(folder,create_case)

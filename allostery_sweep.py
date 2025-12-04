@@ -15,26 +15,17 @@ def fmt(x):
 
 folders = []
 cases_gen = []
-non_cases = []
+#non_cases = []
 
 for V, K in itertools.product(vals, vals):
     folders.append(f"V_{fmt(V)}_K_{fmt(K)}_allostery")
-
-    cases_gen.append(
-        lambda bog, V=V, K=K: params.create_cases(
-            bog, V_allo_rate=V, K_allo_rate=K
-        )
-    )
-
-    non_cases.append(
-        lambda bog, V=V, K=K: params.nonallo_case(
-            bog, eqV_allo_rate=V, eqK_allo_rate=K
-        )
-    )
+    cases_gen.append(lambda bog, V=V, K=K: params.create_cases(bog, V_allo_rate=V, K_allo_rate=K))
+    #non_cases.append(lambda bog, V=V, K=K: params.nonallo_case(bog, eqV_allo_rate=V, eqK_allo_rate=K))
 
 
 
-for folder,create_case,non_case in zip(folders,cases_gen,non_cases):
+# for folder,create_case,non_case in zip(folders,cases_gen,non_cases):
+for folder,create_case in zip(folders,cases_gen):
     os.makedirs(folder+'fcases', exist_ok=True)
     
     #Fig 2
@@ -47,22 +38,22 @@ for folder,create_case,non_case in zip(folders,cases_gen,non_cases):
     
     for bog in bog_list2:
         allosteric = create_case(bog)
-        non_allosteric = non_case(bog)
+        #non_allosteric = non_case(bog)
 
         p_steady_allo,tna = allosteric.find_steady()
         p_allo_list.append(p_steady_allo)
         MI_allo.append(mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]) ))
         print('solved allosteric:    ',bog,tna)
 
-        p_steady_nonallo,tna = non_allosteric.find_steady()
-        p_nonallo_list.append(p_steady_nonallo)
-        MI_nonallo.append(mutual_info(*marginalize(p_steady_nonallo, non_allosteric.states, [0,1]) ))
-        print('solved non-allosteric:',bog,tna)
+        # p_steady_nonallo,tna = non_allosteric.find_steady()
+        # p_nonallo_list.append(p_steady_nonallo)
+        # MI_nonallo.append(mutual_info(*marginalize(p_steady_nonallo, non_allosteric.states, [0,1]) ))
+        # print('solved non-allosteric:',bog,tna)
         
     np.savetxt(folder+'fcases/A_MI.csv',np.array((bog_list2,MI_allo,MI_nonallo)).T)    
 
     p_allo_arr = np.array(pad_stack(p_allo_list))
     np.savetxt(folder+'fcases/A_allo_steady.csv',p_allo_arr)    
 
-    p_nonallo_arr = np.array(pad_stack(p_nonallo_list))
-    np.savetxt(folder+'fcases/A_nonallo_steady.csv',p_nonallo_arr)    
+    # p_nonallo_arr = np.array(pad_stack(p_nonallo_list))
+    # np.savetxt(folder+'fcases/A_nonallo_steady.csv',p_nonallo_arr)    
