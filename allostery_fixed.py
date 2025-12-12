@@ -25,7 +25,7 @@ def _worker(idx, bog, allo_rate,create_case):
 def run_all(folder,create_case):
     os.makedirs(folder+'fcases', exist_ok=True)
 
-    bog_list = np.arange(1,9)*10.0
+    bog_list = np.arange(1,9)*10.
     log10_allo_rate_list = np.linspace(-3,3,61)
     allo_rate_list = (10**log10_allo_rate_list)
 
@@ -66,27 +66,30 @@ def run_all(folder,create_case):
     np.savetxt(folder+'fcases/B_steady.csv', p_steady_arr)
 
 if __name__ == "__main__":
-    #Separating V and K allostery
-    folders = ['V_?_K_.1_allostery',
-               'V_?_K_1_allostery',
-               'V_?_K_10_allostery',
-               'V_.1_K_?_allostery',
-               'V_1_K_?_allostery',
-               'V_10_K_?_allostery']
+    # 1 first, then .1, then 10
+    folders = ['V_?_K_1_allostery',  'V_1_K_?_allostery', 
+               'V_?_K_.1_allostery', 'V_.1_K_?_allostery', 
+               'V_?_K_10_allostery', 'V_10_K_?_allostery']
+
+    def case_al_1(bog, ar):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1)
+
+    def case_kl_1(bog, ar):
+        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar)
+
     def case_al_p1(bog, ar):
         return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=.1)
-    def case_al_1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1 )
-    def case_al_10(bog, ar):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=10)   
+
     def case_kl_p1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=.1, K_allo_rate=ar)      
-    def case_kl_1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=1 , K_allo_rate=ar)
+        return params.create_cases(bog, V_allo_rate=.1, K_allo_rate=ar)
+
+    def case_al_10(bog, ar):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=10)
+
     def case_kl_10(bog, ar):
         return params.create_cases(bog, V_allo_rate=10, K_allo_rate=ar)
-    
-    cases_gen = [case_al_p1,case_al_1, case_al_10, case_kl_p1, case_kl_1, case_kl_10]
 
-    for folder,create_case in zip(folders,cases_gen):
-        run_all(folder,create_case)
+    cases_gen = [case_al_1,case_kl_1,case_al_p1,case_kl_p1,case_al_10,case_kl_10]
+
+    for folder, create_case in zip(folders, cases_gen):
+        run_all(folder, create_case)

@@ -7,7 +7,7 @@ pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - 
 
 import itertools
 
-vals = [.1, 1, 10]
+vals = [ 1, .1, 10]
 
 def fmt(x):
     """Format number into folder string style."""
@@ -30,7 +30,6 @@ for folder,create_case in zip(folders,cases_gen):
     p_allo_list =[]
     p_nonallo_list =[]
     MI_allo = []
-    MI_nonallo =[]
     
     for bog in bog_list2:
         allosteric = create_case(bog)
@@ -40,7 +39,7 @@ for folder,create_case in zip(folders,cases_gen):
         MI_allo.append(mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]) ))
         print('solved allosteric:    ',bog,tna)
         
-    np.savetxt(folder+'fcases/A_MI.csv',np.array((bog_list2,MI_allo,MI_nonallo)).T)    
+    np.savetxt(folder+'fcases/A_MI.csv',np.array((bog_list2,MI_allo)).T)    
 
     p_allo_arr = np.array(pad_stack(p_allo_list))
     np.savetxt(folder+'fcases/A_allo_steady.csv',p_allo_arr)    

@@ -2,21 +2,21 @@ import numpy as np
 from numba import njit
 from basis import *
 
-St = np.array([[ 0,  0,  0,  1],
-               [ 0,  0,  0, -1],
-               [+2,  0,  0, -1],
-               [-2,  0,  0,  1],
-               [+2,  0,  0, -1],
-               [-2,  0,  0,  1],
-               [ 1,  0,  0,  0],
-               [-1,  0,  0,  0],
-               [ 1,  0,  0,  0],
-               [-1,  0,  0,  0],
-               [-2,  0,  1,  0],
-               [-2,  0,  1,  0],
-               [ 0,  1, -1,  0],
-               [ 0, -1,  1,  0],
-               [ 0,  0, -1,  0]])
+St = np.array([[ 0,  0,  0,  1],   # beta_s
+               [ 0,  0,  0, -1],   # gamma_s*S
+               [+2,  0,  0, -1],    # kAon*A*S
+               [-2,  0,  0,  1],    # kAoff*AS
+               [+2,  0,  0, -1],    # kApon*Ap*S
+               [-2,  0,  0,  1],    # kApoff*ApS
+               [ 1,  0,  0,  0],   # alpha*A
+               [-1,  0,  0,  0],   # alphap*Ap
+               [ 1,  0,  0,  0],   # alpha_s*AS
+               [-1,  0,  0,  0],   # alpha_sp*ApS
+               [-2,  0,  1,  0],    # nu*AS
+               [-2,  0,  1,  0],    # nup*ApS
+               [ 0,  1, -1,  0],    # kBon*B*P
+               [ 0, -1,  1,  0],    # kBoff*BP
+               [ 0,  0, -1,  0]])   # gammaP*P
 
 @njit
 def get_rates(x,value,N):

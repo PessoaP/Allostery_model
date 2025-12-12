@@ -231,8 +231,8 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.)
                                 K_allo_rate*1.0,  #kApon
                                 1,  #kApoff
                                 1,  #alpha
-                                4,  #alphap
-                                2,  #alpha_s
+                                2,  #alphap
+                                4,  #alpha_s
                                 1,  #alpha_sp
                                 1,  #nu
                                 V_allo_rate*1.0, #nup
