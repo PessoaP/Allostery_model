@@ -25,7 +25,7 @@ def _worker(idx, bog, allo_rate,create_case):
 def run_all(folder,create_case):
     os.makedirs(folder+'fcases', exist_ok=True)
 
-    bog_list = np.arange(1,9)*10.
+    bog_list = 10.*np.arange(1,9)
     log10_allo_rate_list = np.linspace(-3,3,61)
     allo_rate_list = (10**log10_allo_rate_list)
 
@@ -62,14 +62,12 @@ def run_all(folder,create_case):
     np.savetxt(folder+'fcases/B_report.csv', out_summary)
 
     # pad + save steady states
-    p_steady_arr = np.array(pad_stack(steadies))
-    np.savetxt(folder+'fcases/B_steady.csv', p_steady_arr)
+    #p_steady_arr = np.array(pad_stack(steadies))
+    #np.savetxt(folder+'fcases/B_steady.csv', p_steady_arr)
 
 if __name__ == "__main__":
     # 1 first, then .1, then 10
-    folders = ['V_?_K_1_allostery',  'V_1_K_?_allostery', 
-               'V_?_K_.1_allostery', 'V_.1_K_?_allostery', 
-               'V_?_K_10_allostery', 'V_10_K_?_allostery']
+    folders = ['V_?_K_1_allostery', 'V_1_K_?_allostery', 'V_?_K_.1_allostery', 'V_.1_K_?_allostery', 'V_?_K_10_allostery','V_10_K_?_allostery']
 
     def case_al_1(bog, ar):
         return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1)

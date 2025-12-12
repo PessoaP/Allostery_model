@@ -89,7 +89,7 @@ class case:
         
         return gillespie(self.initial,Ts,self.value)
     
-    def found_steady_state(self,p,tol=1e-12):
+    def found_steady_state(self,p,tol=1e-9):
         pA_overomega = (smn.array_times_sm(p,self.B)-p)
         return np.max(np.abs(pA_overomega))*self.omega<tol
     
@@ -99,13 +99,13 @@ class case:
         t=0
         while not(is_steady):
             is_steady = self.found_steady_state(p)
-            p = self.solver(10,p)
-            t+=10
+            p = self.solver(5,p)
+            t+=5
         return p,t
     
 
     
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1):
+def create_cases(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1):
     init = np.array((0,  #A
                     0,  #B
                     0,  #P
@@ -122,8 +122,8 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1):
                                 2,  #alphap
                                 4,  #alpha_s
                                 1,  #alpha_sp
-                                1,  #nu
-                                V_allo_rate*1.0, #nup
+                                base_nu,  #nu
+                                V_allo_rate*base_nu, #nup
                                 1, #kBon
                                 1, #kBoff
                                 1  #gammaP
