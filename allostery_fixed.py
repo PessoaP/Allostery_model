@@ -12,20 +12,20 @@ pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - 
 def _worker(idx, bog, allo_rate,create_case):
     print('running',idx,bog,allo_rate)
     # create everything inside the worker to avoid pickling big globals
-    allosteric = create_case(bog, allo_rate)
-    p_steady_allo, ta = allosteric.find_steady()
+    allo_case = create_case(bog, allo_rate)
+    p_steady_allo, ta = allo_case.find_steady()
     print(idx, 'case made')
 
-    MI = mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]))
-    S  = expected(*marginalize(p_steady_allo, allosteric.states, 3))
-    P  = expected(*marginalize(p_steady_allo, allosteric.states, 2))
+    MI = mutual_info(*marginalize(p_steady_allo, allo_case.states, [0,1]))
+    S  = expected(*marginalize(p_steady_allo, allo_case.states, 3))
+    P  = expected(*marginalize(p_steady_allo, allo_case.states, 2))
 
     return (idx, bog, allo_rate, ta, MI, S, P, p_steady_allo)
 
 def run_all(folder,create_case):
     os.makedirs(folder+'fcases', exist_ok=True)
 
-    bog_list = 10.*np.arange(1,9)
+    bog_list = [10,20,30,50,80]
     log10_allo_rate_list = np.linspace(-3,3,61)
     allo_rate_list = (10**log10_allo_rate_list)
 
@@ -66,28 +66,23 @@ def run_all(folder,create_case):
     #np.savetxt(folder+'fcases/B_steady.csv', p_steady_arr)
 
 if __name__ == "__main__":
-    # 1 first, then .1, then 10
-    folders = ['V_?_K_1_allostery', 'V_1_K_?_allostery', 'V_?_K_.1_allostery', 'V_.1_K_?_allostery', 'V_?_K_10_allostery','V_10_K_?_allostery']
+    folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
 
-    def case_al_1(bog, ar):
+    def case_vl_1(bog, ar):
         return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1)
+    
+    def case_vl_1_nu10(bog, ar):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, base_nu=10)
 
     def case_kl_1(bog, ar):
         return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar)
 
-    def case_al_p1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=.1)
+    def case_kl_1_nu10(bog, ar):
+        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, base_nu=10)
 
-    def case_kl_p1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=.1, K_allo_rate=ar)
-
-    def case_al_10(bog, ar):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=10)
-
-    def case_kl_10(bog, ar):
-        return params.create_cases(bog, V_allo_rate=10, K_allo_rate=ar)
-
-    cases_gen = [case_al_1,case_kl_1,case_al_p1,case_kl_p1,case_al_10,case_kl_10]
+    cases_gen = [case_vl_1,case_vl_1_nu10,case_kl_1,case_kl_1_nu10]
 
     for folder, create_case in zip(folders, cases_gen):
         run_all(folder, create_case)
+
+
