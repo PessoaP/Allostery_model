@@ -2,6 +2,7 @@
 
 This repository contains the Python code used to generate the figures in the manuscript  
 **_Allostery Beyond Amplification: Temporal Regulation of Signaling Information_**.
+Available as a preprint on [arXiv](https://arxiv.org/abs/2503.10873)
 
 The code implements a chemical master equation (CME) formulation of the allosteric signaling model in the figure below and solves it numerically using sparse transition-rate matrices
 
