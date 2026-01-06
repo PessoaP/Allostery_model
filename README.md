@@ -7,7 +7,7 @@ Available as a preprint on [arXiv](https://arxiv.org/abs/2601.01850)
 The code implements a chemical master equation (CME) formulation of the allosteric signaling model in the figure below and solves it numerically using sparse transition-rate matrices
 
 <div style="background-color:white; display:inline-block; padding:10px;">
-  <img src="http://labpresse.com/wp-content/uploads/2026/01/Pessoa_Allo.pdf" width="750"/>
+  <img src="http://labpresse.com/wp-content/uploads/2026/01/Pessoa_Allo-1.png" width="750"/>
 </div>
 
 ---
