@@ -47,7 +47,7 @@ If you find this work useful, we appreciate the citation. Here's the BibTeX:
 ```
 @misc{pessoa2025allostery,
       title={Allostery Beyond Amplification: Temporal Regulation of Signaling Information }, 
-      author={Pedro Pessoa and Steve Pressé and S Banu Ozkan},
+      author={Pedro Pessoa and Steve Pressé and S Banu Ozkan},  
       year={2026},
       eprint={2601.01850},
       archivePrefix={arXiv},
