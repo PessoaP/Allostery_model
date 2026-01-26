@@ -63,16 +63,11 @@ if __name__ == "__main__":
 
     bog=40.
 
-    allo_rate = np.array([1/20,1/10,1.,10.,20.])
+    allo_rate = np.array([1/10,1.,10.])
 
-    param_sets = [(bog,     'triangle', 10),
-                  (bog,      'varstep', np.array((2., 18.))),
-                  (bog,      'varstep', np.array((6., 14.))),
-                  (bog,      'varstep', np.array((10.,10.))),
-                  (bog,      'varstep', np.array((14., 6.))),
-                  (bog,      'varstep', np.array((18., 2.))),
-                  ]
+    param_sets = [(bog,      'varstep', np.array((14., 6.))),]
                 
     os.makedirs(folder, exist_ok=True)
     run_all(params_varbeta.create_cases,param_sets, allo_rate, folder)
+    run_all(params_varbeta.create_equivalent_nonallo,param_sets, allo_rate, folder)
 

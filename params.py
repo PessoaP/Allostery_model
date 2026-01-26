@@ -55,6 +55,7 @@ class case:
         mean_steady = beta_s/gamma_s
 
         Ns = max(11,int(mean_steady + 10*np.sqrt(mean_steady) + 1))
+        print(Ns)
         N = np.array((4,2,Ns,Ns))
         self.N = N
 
@@ -105,7 +106,7 @@ class case:
     
 
     
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1):
+def create_cases(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1,base_kon=5):
     init = np.array((0,  #A
                     0,  #B
                     0,  #P
@@ -114,20 +115,46 @@ def create_cases(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1):
     
     allosteric_value = np.array((bog*1.0, #beta_s
                                 1,   #gamma_s
-                                1,  #kAon
+                                base_kon,  #kAon
                                 1,  #kAoff
-                                K_allo_rate*1.0,  #kApon
+                                K_allo_rate*base_kon,  #kApon
                                 1,  #kApoff
-                                1,  #alpha
-                                2,  #alphap
-                                4,  #alpha_s
-                                1,  #alpha_sp
+                                1/4,  #alpha
+                                2/4,  #alphap
+                                4/4,  #alpha_s
+                                1/4,  #alpha_sp
                                 base_nu,  #nu
                                 V_allo_rate*base_nu, #nup
-                                1, #kBon
+                                base_kon, #kBon
                                 1, #kBoff
-                                1  #gammaP
+                                .25  #gammaP
                                 ))
-    
+
     return case(init,allosteric_value)
 
+
+def create_equivalent_non_allo(bog,eqV_allo_rate=1,eqK_allo_rate=1,base_nu=1,base_kon=5):
+    init = np.array((0,  #A
+                    0,  #B
+                    0,  #P
+                    bog*1.0 #S
+                    ))
+    
+    value = np.array((bog*1.0, #beta_s
+                      1,   #gamma_s
+                      base_kon*(1 + eqK_allo_rate)/2,  #kAon
+                      1,  #kAoff
+                      0,  #kApon
+                      0,  #kApoff
+                      0,  #alpha
+                      0,  #alphap
+                      0,  #alpha_s
+                      0,  #alpha_sp
+                      base_nu*(1. + eqV_allo_rate)/2,  #nu
+                      0, #nup
+                      base_kon, #kBon
+                      1, #kBoff
+                      .25  #gammaP
+                      ))
+    
+    return case(init,value)

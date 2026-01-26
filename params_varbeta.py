@@ -143,7 +143,7 @@ class Bs:
             return RMJP_solve(init,self.Bact,self.omega_act*(t_f-t_i)) 
 
 class case:
-    def __init__(self,initial,value_nbeta,beta_max,function_params,function='triangle', hex_code=None):
+    def __init__(self,initial,value_nbeta,beta_max,function_params,function='triangle', hex_code=None, kind='Allosteric'):
 
         self.value_nbeta = value_nbeta
         self.beta_max = beta_max
@@ -151,6 +151,7 @@ class case:
         self.beta_f = lambda t: dic[function](t,
                                               self.beta_T,
                                               self.beta_max)
+        self.kind = kind
 
         gamma_s = value_nbeta[0]
         self.max_mean = beta_max/gamma_s
@@ -207,38 +208,64 @@ class case:
                 return
             
 
-            np.savetxt(savefolder+'/A_'+self.hex_code+'_report.csv',np.vstack((t,bt,
-                                                                            np.array(S),
-                                                                            np.array(P),
-                                                                            np.array(MI))).T)
+            np.savetxt(savefolder+'/{}_'.format(self.kind)+self.hex_code+'_report.csv',np.vstack((t,bt,
+                                                                                                  np.array(S),
+                                                                                                  np.array(P),
+                                                                                                  np.array(MI))).T)
                 
 def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
     #if allo_rate == 0:
     #    return 'nonallo'  + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     return 'V=' + str(V_allo_rate) + '_K=' + str(K_allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.):
+def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.,base_kon=5,base_nu=1):
+    init = np.array((0,  #A
+                    0,  #B
+                    0,  #P
+                    bog*1.0 #S
+                    ))
+       
+    allosteric_value = np.array((bog*1.0, #beta_s
+                                1,   #gamma_s
+                                base_kon,  #kAon
+                                1,  #kAoff
+                                K_allo_rate*base_kon,  #kApon
+                                1,  #kApoff
+                                1/4,  #alpha
+                                2/4,  #alphap
+                                4/4,  #alpha_s
+                                1/4,  #alpha_sp
+                                base_nu,  #nu
+                                V_allo_rate*base_nu, #nup
+                                base_kon, #kBon
+                                1, #kBoff
+                                .25  #gammaP
+                                ))
+    
+    return case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T),kind='Allosteric')
+
+def create_equivalent_nonallo(bog,eqV_allo_rate=1,eqK_allo_rate=1,function='triangle',beta_T=10.,base_kon=5,base_nu=1):
     init = np.array((0,  #A
                     0,  #B
                     0,  #P
                     bog*1.0 #S
                     ))
     
-    allosteric_value = np.array((bog*1.0, #beta_s
-                                1,   #gamma_s
-                                1,  #kAon
-                                1,  #kAoff
-                                K_allo_rate*1.0,  #kApon
-                                1,  #kApoff
-                                1,  #alpha
-                                2,  #alphap
-                                4,  #alpha_s
-                                1,  #alpha_sp
-                                1,  #nu
-                                V_allo_rate*1.0, #nup
-                                1, #kBon
-                                1, #kBoff
-                                1  #gammaP
-                                ))
+    value = np.array((bog*1.0, #beta_s
+                      1,   #gamma_s
+                      base_kon*(1 + eqK_allo_rate)/2,  #kAon
+                      1,  #kAoff
+                      0,  #kApon
+                      0,  #kApoff
+                      0,  #alpha
+                      0,  #alphap
+                      0,  #alpha_s
+                      0,  #alpha_sp
+                      base_nu*(1. + eqV_allo_rate)/2,  #nu
+                      0, #nup
+                      base_kon, #kBon
+                      1, #kBoff
+                      .25  #gammaP
+                      ))
     
-    return case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T))
+    return case(init, value[1:], bog, beta_T, function, hex_code(bog,eqV_allo_rate,eqK_allo_rate,function,beta_T),kind='nonAllosteric')

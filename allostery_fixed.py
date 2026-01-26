@@ -25,8 +25,8 @@ def _worker(idx, bog, allo_rate,create_case):
 def run_all(folder,create_case):
     os.makedirs(folder+'fcases', exist_ok=True)
 
-    bog_list = [10,20,30,50,80]
-    log10_allo_rate_list = np.linspace(-3,3,61)
+    bog_list = [10,20,30]#50,80]
+    log10_allo_rate_list = np.linspace(-3,3,31)
     allo_rate_list = (10**log10_allo_rate_list)
 
     grid = [(i, b, a) for i, (b, a) in enumerate(product(bog_list, allo_rate_list))]
@@ -61,9 +61,7 @@ def run_all(folder,create_case):
     out_summary = np.hstack([bog_allo_arr, MI_arr[:,None], S_arr[:,None], P_arr[:,None]])
     np.savetxt(folder+'fcases/B_report.csv', out_summary)
 
-    # pad + save steady states
-    #p_steady_arr = np.array(pad_stack(steadies))
-    #np.savetxt(folder+'fcases/B_steady.csv', p_steady_arr)
+
 
 if __name__ == "__main__":
     folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
