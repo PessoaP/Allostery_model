@@ -90,7 +90,7 @@ class case:
         
         return gillespie(self.initial,Ts,self.value)
     
-    def found_steady_state(self,p,tol=1e-9):
+    def found_steady_state(self,p,tol=1e-6):
         pA_overomega = (smn.array_times_sm(p,self.B)-p)
         return np.max(np.abs(pA_overomega))*self.omega<tol
     
@@ -103,58 +103,90 @@ class case:
             p = self.solver(5,p)
             t+=5
         return p,t
-    
-
-    
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1,base_kon=5):
-    init = np.array((0,  #A
-                    0,  #B
-                    0,  #P
-                    bog*1.0 #S
-                    ))
-    
-    allosteric_value = np.array((bog*1.0, #beta_s
-                                1,   #gamma_s
-                                base_kon,  #kAon
-                                1,  #kAoff
-                                K_allo_rate*base_kon,  #kApon
-                                1,  #kApoff
-                                1/4,  #alpha
-                                2/4,  #alphap
-                                4/4,  #alpha_s
-                                1/4,  #alpha_sp
-                                base_nu,  #nu
-                                V_allo_rate*base_nu, #nup
-                                base_kon, #kBon
-                                1, #kBoff
-                                .25  #gammaP
-                                ))
-
-    return case(init,allosteric_value)
 
 
-def create_equivalent_non_allo(bog,eqV_allo_rate=1,eqK_allo_rate=1,base_nu=1,base_kon=5):
-    init = np.array((0,  #A
-                    0,  #B
-                    0,  #P
-                    bog*1.0 #S
-                    ))
-    
-    value = np.array((bog*1.0, #beta_s
-                      1,   #gamma_s
-                      base_kon*(1 + eqK_allo_rate)/2,  #kAon
-                      1,  #kAoff
-                      0,  #kApon
-                      0,  #kApoff
-                      0,  #alpha
-                      0,  #alphap
-                      0,  #alpha_s
-                      0,  #alpha_sp
-                      base_nu*(1. + eqV_allo_rate)/2,  #nu
-                      0, #nup
-                      base_kon, #kBon
-                      1, #kBoff
-                      .25  #gammaP
-                      ))
-    
-    return case(init,value)
+def get_init(bog):
+    return np.array((0,  # A
+                     0,  # B
+                     0,  # P
+                     bog*1.0  # S
+                     ), dtype=float)
+
+def allosteric_rates(alpha,alphap,base_kon,base_koff,K_allo_rate):
+    sqrtK = np.sqrt(K_allo_rate)
+
+    alphaS  = alpha*sqrtK
+    alphaSp = alphap/sqrtK
+
+    kApon  = base_kon*sqrtK
+    kApoff = base_koff/sqrtK
+
+    return alphaS, alphaSp, kApon, kApoff
+
+def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1,base_kon=3,
+                         base_koff=1,alpha=1/4,alphap=1/2):
+
+    alphaS, alphaSp, kApon, kApoff = allosteric_rates(alpha,alphap,base_kon,base_koff,K_allo_rate)
+
+    return np.array((bog*1.0,  # beta_s
+                     1.,       # gamma_s
+                     base_kon, # kAon
+                     base_koff,# kAoff
+                     kApon,    # kApon
+                     kApoff,   # kApoff
+                     alpha,    # alpha
+                     alphap,   # alphap
+                     alphaS,   # alpha_s
+                     alphaSp,  # alpha_sp
+                     base_nu,  # nu
+                     V_allo_rate*base_nu, # nup
+                     base_kon, # kBon
+                     1.,       # kBoff
+                     1.        # gammaP
+                     ), dtype=float)
+
+
+def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
+                                  base_nu=1,base_kon=3,
+                                  base_koff=1,alpha=1/4,alphap=1/2):
+
+    alphaS, alphaSp, kApon, kApoff = allosteric_rates(alpha,alphap,base_kon,base_koff,eqK_allo_rate)
+
+    denom = alpha + alphap
+    kAon_eff  = (alphap*base_kon  + alpha*kApon)  / denom
+    kAoff_eff = (alphap*base_koff + alpha*kApoff) / denom
+
+    nu_eff = base_nu*(alphaSp + alphaS*eqV_allo_rate)/(alphaS + alphaSp)
+
+    return np.array((bog*1.0,  # beta_s
+                     1.,       # gamma_s
+                     kAon_eff, # kAon
+                     kAoff_eff,# kAoff
+                     0.,       # kApon
+                     0.,       # kApoff
+                     0.,       # alpha
+                     0.,       # alphap
+                     0.,       # alpha_s
+                     0.,       # alpha_sp
+                     nu_eff,   # nu
+                     0.,       # nup
+                     base_kon, # kBon
+                     1.,       # kBoff
+                     1.        # gammaP
+                     ), dtype=float)
+
+
+def create_cases(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1,base_kon=3):
+    init = get_init(bog)
+    val  = get_allosteric_value(bog,V_allo_rate,K_allo_rate,
+                                base_nu,base_kon)
+    return case(init,val)
+
+
+def create_equivalent_non_allo(bog,eqV_allo_rate=1,eqK_allo_rate=1,
+                               base_nu=1,base_kon=3):
+    init = get_init(bog)
+    val  = get_equivalent_non_allo_value(bog,eqV_allo_rate,
+                                         eqK_allo_rate,
+                                         base_nu,base_kon)
+    return case(init,val)

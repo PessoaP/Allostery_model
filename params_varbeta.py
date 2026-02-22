@@ -4,6 +4,10 @@ import stsp
 import smn
 from basis import marginalize,expected,mutual_info
 
+from params import get_B as RMJP_get_B
+from params import solve as RMJP_solve
+from params import get_init, get_allosteric_value, get_equivalent_non_allo_value
+
 @njit
 def triangle(t,beta_T,beta_max):
     return ((t % beta_T)/beta_T)*beta_max
@@ -96,8 +100,7 @@ class A_variable:
 
 
 ##RMJP solving functions
-from params import get_B as RMJP_get_B
-from params import solve as RMJP_solve
+
 
 class Bs:
     def __init__(self,beta_max,beta_T,value_nbeta,N):
@@ -170,7 +173,6 @@ class case:
 
         else:
             self.Msolver= Bs(beta_max,self.beta_T,value_nbeta,self.N)
-            #self.Msolver = A_variable(beta_max,self.beta_T,value_nbeta,self.can_go_up,self.N,function)
 
 
         self.hex_code = hex_code
@@ -218,54 +220,18 @@ def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
     #    return 'nonallo'  + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     return 'V=' + str(V_allo_rate) + '_K=' + str(K_allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.,base_kon=5,base_nu=1):
-    init = np.array((0,  #A
-                    0,  #B
-                    0,  #P
-                    bog*1.0 #S
-                    ))
-       
-    allosteric_value = np.array((bog*1.0, #beta_s
-                                1,   #gamma_s
-                                base_kon,  #kAon
-                                1,  #kAoff
-                                K_allo_rate*base_kon,  #kApon
-                                1,  #kApoff
-                                1/4,  #alpha
-                                2/4,  #alphap
-                                4/4,  #alpha_s
-                                1/4,  #alpha_sp
-                                base_nu,  #nu
-                                V_allo_rate*base_nu, #nup
-                                base_kon, #kBon
-                                1, #kBoff
-                                .25  #gammaP
-                                ))
-    
-    return case(init, allosteric_value[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T),kind='Allosteric')
 
-def create_equivalent_nonallo(bog,eqV_allo_rate=1,eqK_allo_rate=1,function='triangle',beta_T=10.,base_kon=5,base_nu=1):
-    init = np.array((0,  #A
-                    0,  #B
-                    0,  #P
-                    bog*1.0 #S
-                    ))
-    
-    value = np.array((bog*1.0, #beta_s
-                      1,   #gamma_s
-                      base_kon*(1 + eqK_allo_rate)/2,  #kAon
-                      1,  #kAoff
-                      0,  #kApon
-                      0,  #kApoff
-                      0,  #alpha
-                      0,  #alphap
-                      0,  #alpha_s
-                      0,  #alpha_sp
-                      base_nu*(1. + eqV_allo_rate)/2,  #nu
-                      0, #nup
-                      base_kon, #kBon
-                      1, #kBoff
-                      .25  #gammaP
-                      ))
-    
-    return case(init, value[1:], bog, beta_T, function, hex_code(bog,eqV_allo_rate,eqK_allo_rate,function,beta_T),kind='nonAllosteric')
+def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.,base_kon=3,base_nu=1):
+    init = get_init(bog)
+    val  = get_allosteric_value(bog,V_allo_rate,K_allo_rate,
+                                base_nu,base_kon)
+
+    return case(init, val[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T),kind='Allosteric')
+
+def create_equivalent_nonallo(bog,eqV_allo_rate=1,eqK_allo_rate=1,function='triangle',beta_T=10.,base_kon=3,base_nu=1):
+    init = get_init(bog)
+    val  = get_equivalent_non_allo_value(bog,eqV_allo_rate,
+                                         eqK_allo_rate,
+                                         base_nu,base_kon)
+
+    return case(init, val[1:], bog, beta_T, function, hex_code(bog,eqV_allo_rate,eqK_allo_rate,function,beta_T),kind='nonAllosteric')

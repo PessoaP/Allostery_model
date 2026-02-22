@@ -21,7 +21,7 @@ for V, K in itertools.product(vals, vals):
     cases_gen.append(lambda bog, V=V, K=K: params.create_cases(bog, V_allo_rate=V, K_allo_rate=K))
     
 
-bog_list2 = np.concatenate((np.arange(0,30,2)/10,np.arange(3,16)))
+bog_list2 = np.concatenate((np.arange(0,30,2)/10,np.arange(3,11)))
 bog_list2[0] += 1e-3
     
 for folder,create_case in zip(folders,cases_gen):

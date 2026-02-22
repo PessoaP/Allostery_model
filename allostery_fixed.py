@@ -25,7 +25,7 @@ def _worker(idx, bog, allo_rate,create_case):
 def run_all(folder,create_case):
     os.makedirs(folder+'fcases', exist_ok=True)
 
-    bog_list = [10,20,30]#50,80]
+    bog_list = [5,10,15]#[10,20,30]
     log10_allo_rate_list = np.linspace(-3,3,31)
     allo_rate_list = (10**log10_allo_rate_list)
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     def case_kl_1_nu10(bog, ar):
         return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, base_nu=10)
 
-    cases_gen = [case_vl_1,case_vl_1_nu10,case_kl_1,case_kl_1_nu10]
+    cases_gen = [case_vl_1,case_kl_1,case_vl_1_nu10,case_kl_1_nu10]
 
     for folder, create_case in zip(folders, cases_gen):
         run_all(folder, create_case)

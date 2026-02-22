@@ -61,11 +61,12 @@ def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or
 if __name__ == "__main__":
     folder = 'varallostery'
 
-    bog=40.
+    bog=10.
 
     allo_rate = np.array([1/10,1.,10.])
 
     param_sets = [(bog,      'varstep', np.array((14., 6.))),]
+    param_sets += [(bog,      'varstep', np.array((5., 5.))),]
                 
     os.makedirs(folder, exist_ok=True)
     run_all(params_varbeta.create_cases,param_sets, allo_rate, folder)
