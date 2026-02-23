@@ -112,18 +112,21 @@ def get_init(bog):
                      bog*1.0  # S
                      ), dtype=float)
 
-def allosteric_rates(alpha,alphap,base_kon,base_koff,K_allo_rate):
-    sqrtK = np.sqrt(K_allo_rate)
 
-    alphaS  = alpha*sqrtK
-    alphaSp = alphap/sqrtK
+def allosteric_rates(alpha,alphap,base_kon,base_koff,K_allo_rate):
+    #C4
+    sqrtK = np.sqrt(K_allo_rate)
 
     kApon  = base_kon*sqrtK
     kApoff = base_koff/sqrtK
 
+    alphaS  = alpha*K_allo_rate
+    alphaSp = alphap
+
     return alphaS, alphaSp, kApon, kApoff
 
-def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1,base_kon=3,
+def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,
+                         base_nu=1,base_kon=3,
                          base_koff=1,alpha=1/4,alphap=1/2):
 
     alphaS, alphaSp, kApon, kApoff = allosteric_rates(alpha,alphap,base_kon,base_koff,K_allo_rate)
@@ -141,7 +144,7 @@ def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,base_nu=1,base_kon=3,
                      base_nu,  # nu
                      V_allo_rate*base_nu, # nup
                      base_kon, # kBon
-                     1.,       # kBoff
+                     base_koff,# kBoff
                      1.        # gammaP
                      ), dtype=float)
 
@@ -171,7 +174,7 @@ def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
                      nu_eff,   # nu
                      0.,       # nup
                      base_kon, # kBon
-                     1.,       # kBoff
+                     base_koff,# kBoff
                      1.        # gammaP
                      ), dtype=float)
 

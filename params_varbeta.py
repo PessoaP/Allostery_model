@@ -216,8 +216,6 @@ class case:
                                                                                                   np.array(MI))).T)
                 
 def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
-    #if allo_rate == 0:
-    #    return 'nonallo'  + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     return 'V=' + str(V_allo_rate) + '_K=' + str(K_allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     
 
