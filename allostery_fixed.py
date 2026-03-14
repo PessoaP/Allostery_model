@@ -64,8 +64,6 @@ def run_all(folder,create_case):
 
 
 if __name__ == "__main__":
-    folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
-
     def case_vl_1(bog, ar):
         return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1)
     
@@ -78,6 +76,7 @@ if __name__ == "__main__":
     def case_kl_1_nu10(bog, ar):
         return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, base_nu=10)
 
+    folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
     cases_gen = [case_vl_1,case_vl_1_nu10,case_kl_1,case_kl_1_nu10]
 
     for folder, create_case in zip(folders, cases_gen):

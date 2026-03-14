@@ -22,6 +22,7 @@ for V, K in itertools.product(vals, vals):
     
 
 bog_list2 = np.concatenate((np.arange(0,30,2)/10,np.arange(3,21)))
+bog_list2 = np.concatenate((np.arange(0,30,2)/10,np.arange(3,41)))
 bog_list2[0] += 1e-3
     
 for folder,create_case in zip(folders,cases_gen):
