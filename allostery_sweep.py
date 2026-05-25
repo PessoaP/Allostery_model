@@ -20,7 +20,7 @@ def fmt(x):
     return str(x) if x >= 1 else ".1"
 
 
-def solve_case(V, K, variant, mode, bog_list2):
+def solve_case(V, K, variant, mode, bog_list):
     """
     mode = "allo" or "nonallo"
     """
@@ -34,7 +34,7 @@ def solve_case(V, K, variant, mode, bog_list2):
     S = []
     Prod = []
 
-    for bog in bog_list2:
+    for bog in bog_list:
         if mode == "allo":
             case = params.create_cases(bog,
                                         V_allo_rate=V,
@@ -70,7 +70,7 @@ def solve_case(V, K, variant, mode, bog_list2):
 
     np.savetxt(
         mi_file,
-        np.array((bog_list2, MI, S, Prod)).T,
+        np.array((bog_list, MI, S, Prod)).T,
     )
 
     p_arr = np.array(pad_stack(p_list))
@@ -115,10 +115,7 @@ if __name__ == "__main__":
     vals = [1, 0.1, 10]
     variants = ["C1", "C2"]
 
-    bog_list = np.concatenate((
-        np.arange(0, 30, 2) / 10,
-        np.arange(3, 21),
-    ))
+    bog_list = np.concatenate((np.arange(0, 30, 2) / 10, np.arange(3, 21)))
 
     bog_list[0] += 1e-3
 
