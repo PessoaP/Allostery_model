@@ -4,8 +4,9 @@ import numpy as np
 import params_varbeta
 import os
 
-def _worker(create_case, beta, V_allo_rate, K_allo_rate, shape, params, folder):
-    cs = create_case(beta, V_allo_rate, K_allo_rate, shape, params)
+def _worker(create_case, beta, V_allo_rate, K_allo_rate, variant, shape, params, folder):
+    print(f"Worker: beta={beta}, V_allo_rate={V_allo_rate}, K_allo_rate={K_allo_rate}, variant={variant}, shape={shape}")
+    cs = create_case(beta, V_allo_rate, K_allo_rate, variant, shape, params)
 
     T = cs.beta_T.sum() if isinstance(cs.beta_T, np.ndarray) else 2 * cs.beta_T
     t = np.linspace(0, 4*T, 401)
@@ -18,34 +19,34 @@ def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or
 
     tasks = []
     tasks += [
-        [create_case, b, ar, 1., shape, params, folder]  # V allostery, K = 1
+        [create_case, b, ar, 1., variant, shape, params, folder]  # V allostery, K = 1
         for ar in allo_rate
-        for (b, shape, params) in param_sets
+        for (b, shape, params, variant) in param_sets
     ]
     tasks += [
-        [create_case, b, 1., ar, shape, params, folder]  # K allostery, V = 1
+        [create_case, b, 1., ar, variant, shape, params, folder]  # K allostery, V = 1
         for ar in allo_rate[allo_rate != 1.]
-        for (b, shape, params) in param_sets
+        for (b, shape, params, variant) in param_sets
     ]
     tasks += [
-        [create_case, b, ar, 10., shape, params, folder]  # V allostery, K = 10
+        [create_case, b, ar, 10., variant, shape, params, folder]  # V allostery, K = 10
         for ar in allo_rate[allo_rate != 1.]
-        for (b, shape, params) in param_sets
+        for (b, shape, params, variant) in param_sets
     ]
     tasks += [
-        [create_case, b, 10., ar, shape, params, folder]  # K allostery, V = 10
+        [create_case, b, 10., ar, variant, shape, params, folder]  # K allostery, V = 10
         for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.)]
-        for (b, shape, params) in param_sets
+        for (b, shape, params, variant) in param_sets
     ]
     tasks += [
-        [create_case, b, ar, 0.1, shape, params, folder]  # V allostery, K = 0.1
+        [create_case, b, ar, 0.1, variant, shape, params, folder]  # V allostery, K = 0.1
         for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.)]
-        for (b, shape, params) in param_sets
+        for (b, shape, params, variant) in param_sets
     ]
     tasks += [
-        [create_case, b, 0.1, ar, shape, params, folder]  # K allostery, V = 0.1
+        [create_case, b, 0.1, ar, variant, shape, params, folder]  # K allostery, V = 0.1
         for ar in allo_rate[(allo_rate != 1.) & (allo_rate != 10.) & (allo_rate != 0.1)]
-        for (b, shape, params) in param_sets
+        for (b, shape, params, variant) in param_sets
     ]
 
     done = 0
@@ -65,9 +66,10 @@ if __name__ == "__main__":
 
     allo_rate = np.array([1/10,1.,10.])
 
-    param_sets = [(bog,      'varstep', np.array((14., 6.))),]
-    param_sets += [(bog,      'varstep', np.array((5., 5.))),]
-                
+    variants = ['C1','C2']
+    param_sets = [(bog,      'varstep', np.array((14., 6.)), v) for v in variants] 
+    param_sets += [(bog,      'varstep', np.array((5., 5.)), v) for v in variants]
+
     os.makedirs(folder, exist_ok=True)
     run_all(params_varbeta.create_cases,param_sets, allo_rate, folder)
     run_all(params_varbeta.create_equivalent_nonallo,param_sets, allo_rate, folder)

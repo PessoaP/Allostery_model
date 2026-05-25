@@ -219,17 +219,23 @@ def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
     return 'V=' + str(V_allo_rate) + '_K=' + str(K_allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
     
 
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1,function='triangle',beta_T=10.,base_kon=3,base_nu=1):
+def create_cases(bog,
+                 V_allo_rate=1,K_allo_rate=1,
+                 variant='C2',function='triangle',beta_T=10.,base_kon=3,base_nu=1):
     init = get_init(bog)
     val  = get_allosteric_value(bog,V_allo_rate,K_allo_rate,
-                                base_nu,base_kon)
+                                variant=variant,
+                                base_nu=base_nu,base_kon=base_kon)
 
     return case(init, val[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T),kind='Allosteric')
 
-def create_equivalent_nonallo(bog,eqV_allo_rate=1,eqK_allo_rate=1,function='triangle',beta_T=10.,base_kon=3,base_nu=1):
+def create_equivalent_nonallo(bog,
+                              eqV_allo_rate=1,eqK_allo_rate=1,
+                              variant='C2',function='triangle',beta_T=10.,base_kon=3,base_nu=1):
     init = get_init(bog)
     val  = get_equivalent_non_allo_value(bog,eqV_allo_rate,
                                          eqK_allo_rate,
-                                         base_nu,base_kon)
+                                         variant=variant,
+                                         base_nu=base_nu,base_kon=base_kon)
 
     return case(init, val[1:], bog, beta_T, function, hex_code(bog,eqV_allo_rate,eqK_allo_rate,function,beta_T),kind='nonAllosteric')
