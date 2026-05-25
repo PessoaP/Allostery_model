@@ -26,7 +26,8 @@ def solve_case(V, K, variant, mode, bog_list):
     """
 
     folder = f"V_{fmt(V)}_K_{fmt(K)}_allostery_{variant}"
-    outfolder = folder + "_res"
+    outfolder = "sweep/" + folder + "_res"
+
     os.makedirs(outfolder, exist_ok=True)
 
     p_list = []
@@ -68,13 +69,11 @@ def solve_case(V, K, variant, mode, bog_list):
         mi_file = os.path.join(outfolder, "nonallo_A_MI.csv")
         steady_file = os.path.join(outfolder, "nonallo_A_steady.csv")
 
-    np.savetxt(
-        mi_file,
-        np.array((bog_list, MI, S, Prod)).T,
-    )
+    np.savetxt(mi_file,
+               np.array((bog_list, MI, S, Prod)).T,)
 
-    p_arr = np.array(pad_stack(p_list))
-    np.savetxt(steady_file, p_arr)
+    # p_arr = np.array(pad_stack(p_list))
+    # np.savetxt(steady_file, p_arr)
 
     return folder, mode
 
@@ -112,8 +111,9 @@ def run_parallel(vals, variants, bog_list, maxw=None):
 
 
 if __name__ == "__main__":
+    os.makedirs("sweep", exist_ok=True)
     vals = [1, 0.1, 10]
-    variants = ["C1", "C2"]
+    variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
 
     bog_list = np.concatenate((np.arange(0, 30, 2) / 10, np.arange(3, 21)))
 

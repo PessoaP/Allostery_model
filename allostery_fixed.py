@@ -9,10 +9,10 @@ import random
 
 pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - arr.size), 'constant') for arr in lis])
 
-def _worker(idx, bog, allo_rate,create_case):
-    print('running',idx,bog,allo_rate)
+def _worker(idx, bog, allo_rate, variant, create_case):
+    print('running',idx,bog,allo_rate,  variant)
     # create everything inside the worker to avoid pickling big globals
-    allo_case = create_case(bog, allo_rate)
+    allo_case = create_case(bog, allo_rate, variant)
     p_steady_allo, ta = allo_case.find_steady()
     print(idx, 'case made')
 
@@ -22,11 +22,11 @@ def _worker(idx, bog, allo_rate,create_case):
 
     return (idx, bog, allo_rate, ta, MI, S, P, p_steady_allo)
 
-def run_all(folder,create_case):
-    os.makedirs(folder+'fcases', exist_ok=True)
+def run_all(folder,create_case,variant):
+    os.makedirs(folder+'_fcases', exist_ok=True)
 
     bog_list = [5,10,15]
-    log10_allo_rate_list = np.linspace(-3,3,31)
+    log10_allo_rate_list = np.linspace(-3,3,51)
     allo_rate_list = (10**log10_allo_rate_list)
 
     grid = [(i, b, a) for i, (b, a) in enumerate(product(bog_list, allo_rate_list))]
@@ -45,7 +45,7 @@ def run_all(folder,create_case):
 
     with ProcessPoolExecutor(max_workers=maxw) as ex:
         futures = [ex.submit(_worker, 
-                             args[0], args[1], args[2],
+                             args[0], args[1], args[2], variant,
                              create_case) for args in grid]
         for fut in as_completed(futures):
             idx, bog, allo_rate, ta, MI, S, P, p_steady = fut.result()
@@ -59,27 +59,33 @@ def run_all(folder,create_case):
 
     # save summaries
     out_summary = np.hstack([bog_allo_arr, MI_arr[:,None], S_arr[:,None], P_arr[:,None]])
-    np.savetxt(folder+'fcases/B_report.csv', out_summary)
+    np.savetxt(folder+'_fcases/B_report.csv', out_summary)
 
 
 
 if __name__ == "__main__":
-    def case_vl_1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1)
+
+    def case_vl_1(bog, ar, variant):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, variant=variant)
     
-    def case_vl_1_nu10(bog, ar):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, base_nu=10)
+    def case_vl_1_nu10(bog, ar, variant):
+        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, variant=variant, base_nu=10)
 
-    def case_kl_1(bog, ar):
-        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar)
+    def case_kl_1(bog, ar, variant):
+        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, variant=variant)
 
-    def case_kl_1_nu10(bog, ar):
-        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, base_nu=10)
+    def case_kl_1_nu10(bog, ar, variant):
+        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, variant=variant, base_nu=10)
 
     folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
     cases_gen = [case_vl_1,case_vl_1_nu10,case_kl_1,case_kl_1_nu10]
+    variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
 
+    os.makedirs('fixed', exist_ok=True)
     for folder, create_case in zip(folders, cases_gen):
-        run_all(folder, create_case)
+        os.makedirs('fixed/'+folder, exist_ok=True)
+        for variant in variants:
+            folder_variant = 'fixed/'+folder+'/'+variant
+            run_all(folder_variant, create_case, variant)
 
 

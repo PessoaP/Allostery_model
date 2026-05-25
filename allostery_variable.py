@@ -5,7 +5,6 @@ import params_varbeta
 import os
 
 def _worker(create_case, beta, V_allo_rate, K_allo_rate, variant, shape, params, folder):
-    print(f"Worker: beta={beta}, V_allo_rate={V_allo_rate}, K_allo_rate={K_allo_rate}, variant={variant}, shape={shape}")
     cs = create_case(beta, V_allo_rate, K_allo_rate, variant, shape, params)
 
     T = cs.beta_T.sum() if isinstance(cs.beta_T, np.ndarray) else 2 * cs.beta_T
@@ -66,7 +65,7 @@ if __name__ == "__main__":
 
     allo_rate = np.array([1/10,1.,10.])
 
-    variants = ['C1','C2']
+    variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
     param_sets = [(bog,      'varstep', np.array((14., 6.)), v) for v in variants] 
     param_sets += [(bog,      'varstep', np.array((5., 5.)), v) for v in variants]
 

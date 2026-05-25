@@ -116,7 +116,6 @@ def get_init(bog):
 def allosteric_rates(base_alpha,base_alphap,
                      base_kon,base_koff,
                      K_allo_rate, variant = 'C2'):
-    #C4
     alpha = base_alpha
     alphap = base_alphap
 
