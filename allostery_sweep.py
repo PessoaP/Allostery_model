@@ -1,101 +1,125 @@
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import itertools
+import os
+
 import numpy as np
 import params
 from basis import *
-import os
 
-pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - arr.size), 'constant') for arr in lis])
 
-import itertools
+def pad_stack(lis):
+    max_size = max(a.size for a in lis)
+    return np.vstack([
+        np.pad(arr, (0, max_size - arr.size), "constant")
+        for arr in lis
+    ])
 
-vals = [ 1, .1, 10]
 
 def fmt(x):
     """Format number into folder string style."""
     return str(x) if x >= 1 else ".1"
 
-folders = []
-cases_gen = []
 
-for V, K in itertools.product(vals, vals):
-    for variant in ['C1','C2']:
-        folders.append(f"V_{fmt(V)}_K_{fmt(K)}_allostery_{variant}")
-        cases_gen.append(lambda bog, V=V, K=K, variant=variant: params.create_cases(bog, V_allo_rate=V, K_allo_rate=K, variant=variant))
+def solve_case(V, K, variant, mode, bog_list2):
+    """
+    mode = "allo" or "nonallo"
+    """
 
+    folder = f"V_{fmt(V)}_K_{fmt(K)}_allostery_{variant}"
+    outfolder = folder + "_res"
+    os.makedirs(outfolder, exist_ok=True)
 
-bog_list2 = np.concatenate((np.arange(0,30,2)/10,np.arange(3,21)))
-#bog_list2 = np.concatenate((np.arange(0,30,2)/10,np.arange(3,41)))
-bog_list2[0] += 1e-3
-    
-for folder,create_case in zip(folders,cases_gen):
-    os.makedirs(folder+'_res', exist_ok=True)
-    print(folder)
-    #Fig 2
-    p_allo_list =[]
-    p_nonallo_list =[]
-    MI_allo = []
-    S_allo = []
-    Prod_allo =[]
-    
+    p_list = []
+    MI = []
+    S = []
+    Prod = []
+
     for bog in bog_list2:
-        allosteric = create_case(bog)
+        if mode == "allo":
+            case = params.create_cases(bog,
+                                        V_allo_rate=V,
+                                        K_allo_rate=K,
+                                        variant=variant,)
+        elif mode == "nonallo":
+            case = params.create_equivalent_non_allo(bog,
+                                                     eqV_allo_rate=V,
+                                                     eqK_allo_rate=K,
+                                                     variant=variant,)
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
 
-        p_steady_allo,tna = allosteric.find_steady()
-        p_allo_list.append(p_steady_allo)
+        p_steady, tna = case.find_steady()
+        p_list.append(p_steady)
 
-        mi = mutual_info(*marginalize(p_steady_allo, allosteric.states, [0,1]) )
-        s_ex = expected(*marginalize(p_steady_allo,allosteric.states,3))
-        p_ex = expected(*marginalize(p_steady_allo,allosteric.states,2)) #+ expected(*marginalize(p_steady_allo,allosteric.states,1))
+        mi = mutual_info(*marginalize(p_steady, case.states, [0, 1]))
+        s_ex = expected(*marginalize(p_steady, case.states, 3))
+        p_ex = expected(*marginalize(p_steady, case.states, 2))
 
-        MI_allo.append(mi)
-        S_allo.append(s_ex)
-        Prod_allo.append(p_ex)
+        MI.append(mi)
+        S.append(s_ex)
+        Prod.append(p_ex)
 
-        print('solved allosteric:    ',bog,tna,mi,s_ex,p_ex)
-        
-    np.savetxt(folder+'_res/A_MI.csv',np.array((bog_list2,MI_allo,S_allo,Prod_allo)).T)    
+        print(f"solved {mode}: V={V}, K={K}, {variant}, bog={bog}, tna={tna}, MI={mi}")
 
-    p_allo_arr = np.array(pad_stack(p_allo_list))
-    np.savetxt(folder+'_res/A_allo_steady.csv',p_allo_arr)
+    if mode == "allo":
+        mi_file = os.path.join(outfolder, "A_MI.csv")
+        steady_file = os.path.join(outfolder, "A_allo_steady.csv")
+    else:
+        mi_file = os.path.join(outfolder, "nonallo_A_MI.csv")
+        steady_file = os.path.join(outfolder, "nonallo_A_steady.csv")
 
+    np.savetxt(
+        mi_file,
+        np.array((bog_list2, MI, S, Prod)).T,
+    )
 
-#equivalent non-allosteric
-non_allo_cases_gen = []
-for V, K in itertools.product(vals, vals):
-    for variant in ['C1','C2']:
-        non_allo_cases_gen.append(lambda bog, V=V, K=K, variant=variant: params.create_equivalent_non_allo(bog, eqV_allo_rate=V, eqK_allo_rate=K, variant=variant))
+    p_arr = np.array(pad_stack(p_list))
+    np.savetxt(steady_file, p_arr)
 
-
-for folder, create_case in zip(folders,non_allo_cases_gen):
-    os.makedirs(folder+'_res', exist_ok=True)
-    print('nnalloo'+folder)
-    
-    #Fig 2 extra
-    p_allo_list =[]
-    p_nonallo_list =[]
-    MI_allo = []
-    S_allo = []
-    Prod_allo =[]
-    
-    for bog in bog_list2:
-        nallo = create_case(bog)
-
-        p_steady_allo,tna = nallo.find_steady()
-        p_allo_list.append(p_steady_allo)
-
-        mi = mutual_info(*marginalize(p_steady_allo, nallo.states, [0,1]) )
-        s_ex = expected(*marginalize(p_steady_allo,nallo.states,3))
-        p_ex = expected(*marginalize(p_steady_allo,nallo.states,2)) #+ expected(*marginalize(p_steady_allo,nallo.states,1))
-
-        MI_allo.append(mi)
-        S_allo.append(s_ex)
-        Prod_allo.append(p_ex)
+    return folder, mode
 
 
-        
-        print('solved non_allosteric:    ',bog,tna,mi,s_ex,p_ex)
+def run_parallel(vals, variants, bog_list, maxw=None):
+    if maxw is None:
+        maxw = max(1, (os.cpu_count() or 2) - 1)
 
-    np.savetxt(folder+'_res/nonallo_A_MI.csv',np.array((bog_list2,MI_allo,S_allo,Prod_allo)).T)
+    tasks = []
 
-    p_allo_arr = np.array(pad_stack(p_allo_list))
-    np.savetxt(folder+'_res/nonallo_A_steady.csv',p_allo_arr)
+    for V, K in itertools.product(vals, vals):
+        for variant in variants:
+            tasks.append((V, K, variant, "allo", bog_list))
+            tasks.append((V, K, variant, "nonallo", bog_list))
 
+    total = len(tasks)
+    print(f"Starting {total} tasks with {maxw} workers")
+
+    with ProcessPoolExecutor(max_workers=maxw) as ex:
+        futures = {
+            ex.submit(solve_case, *task): task
+            for task in tasks
+        }
+
+        for done, fut in enumerate(as_completed(futures), start=1):
+            task = futures[fut]
+
+            try:
+                folder, mode = fut.result()
+                print(f"{folder} {mode} done ({done}/{total})")
+            except Exception:
+                print("FAILED TASK:")
+                print(task)
+                raise
+
+
+if __name__ == "__main__":
+    vals = [1, 0.1, 10]
+    variants = ["C1", "C2"]
+
+    bog_list = np.concatenate((
+        np.arange(0, 30, 2) / 10,
+        np.arange(3, 21),
+    ))
+
+    bog_list[0] += 1e-3
+
+    run_parallel(vals, variants, bog_list)
