@@ -10,7 +10,7 @@ def _worker(create_case, beta, V_allo_rate, K_allo_rate, variant, shape, params,
     T = cs.beta_T.sum() if isinstance(cs.beta_T, np.ndarray) else 2 * cs.beta_T
     t = np.linspace(0, 4*T, 401)
 
-    cs.solver(-1.1*T, t, savefolder=folder)
+    cs.solver(-1.1*T, t, savefolder=folder+'/'+variant)
     return cs.hex_code
 
 def run_all(create_case, param_sets, allo_rate, folder, maxw=os.cpu_count()-1 or 1):
@@ -70,6 +70,7 @@ if __name__ == "__main__":
     param_sets += [(bog,      'varstep', np.array((5., 5.)), v) for v in variants]
 
     os.makedirs(folder, exist_ok=True)
+    [os.makedirs(folder+'/'+v, exist_ok=True) for v in variants]
     run_all(params_varbeta.create_cases,param_sets, allo_rate, folder)
     run_all(params_varbeta.create_equivalent_nonallo,param_sets, allo_rate, folder)
 
