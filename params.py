@@ -212,8 +212,8 @@ def allosteric_rates(base_alpha,base_alphap,
 
 def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,
                          variant='C2',
-                         base_nu=1,base_kon=3,
-                         base_koff=1,base_alpha=1/4,base_alphap=1/2):
+                         base_nu=1,base_kon=1,
+                         base_koff=1,base_alpha=1/2,base_alphap=1/4):
 
     alpha, alphap, alphaS, alphaSp, kon, koff, kApon, kApoff = allosteric_rates(base_alpha,base_alphap,
                                                                                 base_kon,base_koff,
@@ -239,7 +239,7 @@ def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,
 
 def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
                                   variant='C2',
-                                  base_nu=1,base_kon=3,
+                                  base_nu=1,base_kon=1,
                                   base_koff=1,alpha_base=1/4,alphap_base=1/2):
 
 
@@ -273,21 +273,21 @@ def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
                      ), dtype=float)
 
 
-def create_cases(bog,V_allo_rate=1,K_allo_rate=1,
-                 base_nu=1,base_kon=3,
+def create_cases(bog, V_allo_rate=1, K_allo_rate=1,
+                 base_nu=1, base_kon=1,
                  variant='C2'):
     init = get_init(bog)
-    val  = get_allosteric_value(bog,V_allo_rate,K_allo_rate,
+    val  = get_allosteric_value(bog, V_allo_rate, K_allo_rate,
                                 variant=variant,
-                                base_nu=base_nu,base_kon=base_kon)
-    return case(init,val)
+                                base_nu=base_nu, base_kon=base_kon)
+    return case(init, val)
 
 
-def create_equivalent_non_allo(bog,eqV_allo_rate=1,eqK_allo_rate=1,
+def create_equivalent_non_allo(bog, eqV_allo_rate=1, eqK_allo_rate=1,
                                variant='C2',
-                               base_nu=1,base_kon=3):
+                               base_nu=1, base_kon=1):
     init = get_init(bog)
-    val  = get_equivalent_non_allo_value(bog,eqV_allo_rate,eqK_allo_rate,
+    val  = get_equivalent_non_allo_value(bog, eqV_allo_rate, eqK_allo_rate,
                                          variant=variant,
-                                         base_nu=base_nu,base_kon=base_kon)
-    return case(init,val)
+                                         base_nu=base_nu, base_kon=base_kon)
+    return case(init, val)

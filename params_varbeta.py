@@ -221,7 +221,8 @@ def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
 
 def create_cases(bog,
                  V_allo_rate=1,K_allo_rate=1,
-                 variant='C2',function='triangle',beta_T=10.,base_kon=3,base_nu=1):
+                 variant='C2',function='triangle',beta_T=10.,
+                 base_kon=1,base_nu=1):
     init = get_init(bog)
     val  = get_allosteric_value(bog,V_allo_rate,K_allo_rate,
                                 variant=variant,
@@ -231,7 +232,8 @@ def create_cases(bog,
 
 def create_equivalent_nonallo(bog,
                               eqV_allo_rate=1,eqK_allo_rate=1,
-                              variant='C2',function='triangle',beta_T=10.,base_kon=3,base_nu=1):
+                              variant='C2',function='triangle',beta_T=10.,
+                              base_kon=1,base_nu=1):
     init = get_init(bog)
     val  = get_equivalent_non_allo_value(bog,eqV_allo_rate,
                                          eqK_allo_rate,

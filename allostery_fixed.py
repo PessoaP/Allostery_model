@@ -1,11 +1,10 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import product
-
+import sys
 import numpy as np
 import params
 from basis import *
 import os
-import random
 
 pad_stack = lambda lis: np.vstack([np.pad(arr, (0, max([a.size for a in lis]) - arr.size), 'constant') for arr in lis])
 
@@ -64,7 +63,7 @@ def run_all(folder,create_case,variant):
 
 
 if __name__ == "__main__":
-
+    
     def case_vl_1(bog, ar, variant):
         return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, variant=variant)
     
@@ -80,6 +79,11 @@ if __name__ == "__main__":
     folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
     cases_gen = [case_vl_1,case_vl_1_nu10,case_kl_1,case_kl_1_nu10]
     variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
+
+    try:
+        variants = [sys.argv[1]]
+    except IndexError:
+        pass
 
     os.makedirs('fixed', exist_ok=True)
     for folder, create_case in zip(folders, cases_gen):
