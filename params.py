@@ -240,7 +240,7 @@ def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,
 def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
                                   variant='C2',
                                   base_nu=1,base_kon=1,
-                                  base_koff=1,alpha_base=1/4,alphap_base=1/2):
+                                  base_koff=1,alpha_base=1/2,alphap_base=1/4):
 
 
     #alphaS, alphaSp, kApon, kApoff = allosteric_rates(alpha,alphap,base_kon,base_koff,eqK_allo_rate)
@@ -249,11 +249,12 @@ def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
                                                                                 base_kon,base_koff,
                                                                                 eqK_allo_rate,variant=variant)
 
-    denom = alpha + alphap
-    kAon_eff  = (alphap*kon  + alpha*kApon)  / denom
-    kAoff_eff = (alphap*koff + alpha*kApoff) / denom
+    denom_unbound = alpha + alphap
+    kAon_eff  = (alphap*kon  + alpha*kApon)  / denom_unbound
 
-    nu_eff = base_nu*(alphaSp + alphaS*eqV_allo_rate)/(alphaS + alphaSp)
+    denom_bound = alphaS + alphaSp
+    kAoff_eff = (alphaSp*koff + alphaS*kApoff) / denom_bound
+    nu_eff = base_nu*(alphaSp + alphaS*eqV_allo_rate)/denom_bound
 
     return np.array((bog*1.0,  # beta_s
                      1.,       # gamma_s
