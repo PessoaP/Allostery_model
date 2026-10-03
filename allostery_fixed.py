@@ -82,7 +82,8 @@ if __name__ == "__main__":
     variants = ['C2']
 
     try:
-        variants = [sys.argv[1]]
+        arg = sys.argv[1]
+        variants = ALL_VARIANTS if arg == 'all' else [arg]
     except IndexError:
         pass
 

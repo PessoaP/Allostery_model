@@ -53,6 +53,27 @@ def entropy(p):
     ps = p[p!=0]
     return -np.sum(ps*np.log(ps))
 
+BASE_PARAMS = {
+    'C1':  (0.1, 1,   1),
+    'C2':  (2,   1,   1),   # standard / default
+    'C3':  (0.5, 1,   1),
+    'C4':  (1,   1,   1),
+    'C5':  (10,  1,   1),
+    'C6':  (2,   0.1, 1),
+    'C7':  (2,   0.5, 1),
+    'C8':  (2,   2,   1),
+    'C9':  (2,   10,  1),
+    'C10': (2,   1,   0.1),
+    'C11': (2,   1,   0.5),
+    'C12': (2,   1,   2),
+    'C13': (2,   1,   10),
+}
+
+ALL_VARIANTS = list(BASE_PARAMS)
+
+def get_base_params(variant):
+    return BASE_PARAMS[variant]
+
 def mutual_info(s,p):
     #This assumes you already marginalized \sigma_A and B, it is a general mutual information function. 
     ind = (p!=0)

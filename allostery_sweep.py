@@ -1,6 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import itertools
 import os
+import sys
 
 import numpy as np
 import params
@@ -76,7 +77,7 @@ def solve_case(V, K, variant, mode, bog_list):
         steady_file = os.path.join(outfolder, "nonallo_A_steady.csv")
 
     np.savetxt(mi_file,
-               np.array((bog_list, MI, S, Prod, ENTROPY_a, ENTROPY_b)).T,)
+               np.array((bog_list, MI, S, Prod, ENTROPY_a, ENTROPY_b)).T)
 
     # p_arr = np.array(pad_stack(p_list))
     # np.savetxt(steady_file, p_arr)
@@ -121,6 +122,12 @@ if __name__ == "__main__":
     vals = [1, 0.1, 10]
     variants = ALL_VARIANTS
     variants = ['C2']
+
+    try:
+        arg = sys.argv[1]
+        variants = ALL_VARIANTS if arg == 'all' else [arg]
+    except IndexError:
+        pass
 
     bog_list = np.concatenate((np.arange(0, 30, 2) / 10, np.arange(3, 21))).round(5)
 

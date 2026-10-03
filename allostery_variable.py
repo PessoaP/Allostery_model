@@ -4,6 +4,7 @@ import numpy as np
 import params_varbeta
 import basis
 import os
+import sys
 
 def _worker(create_case, beta, V_allo_rate, K_allo_rate, variant, shape, params, folder):
     cs = create_case(beta, V_allo_rate, K_allo_rate, variant, shape, params)
@@ -68,7 +69,14 @@ if __name__ == "__main__":
 
     variants = basis.ALL_VARIANTS
     variants = ['C2']
-    param_sets = [(bog,      'varstep', np.array((14., 6.)), v) for v in variants] 
+
+    try:
+        arg = sys.argv[1]
+        variants = basis.ALL_VARIANTS if arg == 'all' else [arg]
+    except IndexError:
+        pass
+
+    param_sets = [(bog,      'varstep', np.array((14., 6.)), v) for v in variants]
     param_sets += [(bog,      'varstep', np.array((5., 5.)), v) for v in variants]
 
     os.makedirs(folder, exist_ok=True)
