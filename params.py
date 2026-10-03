@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit
 import stsp
 import smn
+from basis import get_base_params
 
 @njit
 def get_B(sm):
@@ -115,109 +116,32 @@ def get_init(bog):
 @njit
 def allosteric_rates(base_alpha,base_alphap,
                      base_kon,base_koff,
-                     K_allo_rate, variant = 'C2'):
+                     K_allo_rate):
+    sqrtK = np.sqrt(K_allo_rate)
+
     alpha = base_alpha
     alphap = base_alphap
 
-    alphaS  = base_alpha #*K_allo_rate
+    alphaS  = base_alpha*K_allo_rate
     alphaSp = base_alphap
 
     kon = base_kon
     koff = base_koff
 
-    kApon  = base_kon #*sqrtK
-    kApoff = base_koff #/sqrtK
-
-    print('variant =', variant)
-    if variant == 'C1':
-        sqrtK = np.sqrt(K_allo_rate)
-
-        alphaS  = base_alpha*K_allo_rate
-        alphaSp = base_alphap
-
-        kApon  = base_kon*K_allo_rate
-        kApoff = base_koff
-
-    elif variant == 'C2':
-        sqrtK = np.sqrt(K_allo_rate)
-
-        alphaS  = base_alpha*K_allo_rate
-        alphaSp = base_alphap
-
-        kApon  = base_kon*sqrtK
-        kApoff = base_koff/sqrtK
-
-    elif variant == 'C3':
-        sqrtK = np.sqrt(K_allo_rate)
-
-        alphaS  = base_alpha*sqrtK
-        alphaSp = base_alphap/sqrtK
-
-        kApon  = base_kon*K_allo_rate
-        kApoff = base_koff/sqrtK
-
-    elif variant == 'C4':
-        sqrtK = np.sqrt(K_allo_rate)
-
-        alphaS  = base_alpha*sqrtK
-        alphaSp = base_alphap/sqrtK
-
-        kApon  = base_kon*sqrtK
-        kApoff = base_koff/sqrtK
-
-    elif variant == 'C5':
-        sqrtK = np.sqrt(K_allo_rate)
-
-        alpha  = base_alpha/sqrtK
-        alphap = base_alphap*sqrtK
-
-        kon  = base_kon/sqrtK
-        koff = base_koff*sqrtK
-
-    elif variant == 'C6':
-        sqrtK = np.sqrt(K_allo_rate)
-        qrtK = np.sqrt(sqrtK)
-
-        alpha  = base_alpha/sqrtK
-        alphap = base_alphap*sqrtK
-
-        kon  = base_kon/qrtK
-        koff = base_koff*qrtK
-
-        kApon = base_kon*qrtK
-        kApoff = base_koff/qrtK 
-
-    elif variant == 'C7':
-        sqrtK = np.sqrt(K_allo_rate)
-        #qrtK = np.sqrt(sqrtK)
-
-        alpha  = base_alpha/sqrtK
-        alphap = base_alphap*sqrtK
-
-        kApon = base_kon*sqrtK
-        kApoff = base_koff/sqrtK 
-
-    elif variant == 'C8':
-        sqrtK = np.sqrt(K_allo_rate)
-        #qrtK = np.sqrt(sqrtK)
-
-        alpha  = base_alpha/K_allo_rate
-
-        kApon = base_kon*sqrtK
-        kApoff = base_koff/sqrtK 
+    kApon  = base_kon*sqrtK
+    kApoff = base_koff/sqrtK
 
     return alpha, alphap, alphaS, alphaSp, kon, koff, kApon, kApoff
 
 
 
 def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,
-                         variant='C2',
                          base_nu=1,base_kon=1,
                          base_koff=1,base_alpha=1/2,base_alphap=1/4):
 
     alpha, alphap, alphaS, alphaSp, kon, koff, kApon, kApoff = allosteric_rates(base_alpha,base_alphap,
                                                                                 base_kon,base_koff,
-                                                                                K_allo_rate,variant=variant)
+                                                                                K_allo_rate)
 
     return np.array((bog*1.0,  # beta_s
                      1.,       # gamma_s
@@ -238,16 +162,12 @@ def get_allosteric_value(bog,V_allo_rate=1,K_allo_rate=1,
 
 
 def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
-                                  variant='C2',
                                   base_nu=1,base_kon=1,
                                   base_koff=1,alpha_base=1/2,alphap_base=1/4):
 
-
-    #alphaS, alphaSp, kApon, kApoff = allosteric_rates(alpha,alphap,base_kon,base_koff,eqK_allo_rate)
-
     alpha, alphap, alphaS, alphaSp, kon, koff, kApon, kApoff = allosteric_rates(alpha_base,alphap_base,
                                                                                 base_kon,base_koff,
-                                                                                eqK_allo_rate,variant=variant)
+                                                                                eqK_allo_rate)
 
     denom_unbound = alpha + alphap
     kAon_eff  = (alphap*kon  + alpha*kApon)  / denom_unbound
@@ -275,20 +195,18 @@ def get_equivalent_non_allo_value(bog,eqV_allo_rate=1,eqK_allo_rate=1,
 
 
 def create_cases(bog, V_allo_rate=1, K_allo_rate=1,
-                 base_nu=1, base_kon=1,
                  variant='C2'):
+    base_kon, base_koff, base_nu = get_base_params(variant)
     init = get_init(bog)
     val  = get_allosteric_value(bog, V_allo_rate, K_allo_rate,
-                                variant=variant,
-                                base_nu=base_nu, base_kon=base_kon)
+                                base_nu=base_nu, base_kon=base_kon, base_koff=base_koff)
     return case(init, val)
 
 
 def create_equivalent_non_allo(bog, eqV_allo_rate=1, eqK_allo_rate=1,
-                               variant='C2',
-                               base_nu=1, base_kon=1):
+                               variant='C2'):
+    base_kon, base_koff, base_nu = get_base_params(variant)
     init = get_init(bog)
     val  = get_equivalent_non_allo_value(bog, eqV_allo_rate, eqK_allo_rate,
-                                         variant=variant,
-                                         base_nu=base_nu, base_kon=base_kon)
+                                         base_nu=base_nu, base_kon=base_kon, base_koff=base_koff)
     return case(init, val)

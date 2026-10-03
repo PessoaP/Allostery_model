@@ -18,8 +18,10 @@ def _worker(idx, bog, allo_rate, variant, create_case):
     MI = mutual_info(*marginalize(p_steady_allo, allo_case.states, [0,1]))
     S  = expected(*marginalize(p_steady_allo, allo_case.states, 3))
     P  = expected(*marginalize(p_steady_allo, allo_case.states, 2))
+    entropy_a = entropy(marginalize(p_steady_allo, allo_case.states, 0)[1])
+    entropy_b = entropy(marginalize(p_steady_allo, allo_case.states, 1)[1])
 
-    return (idx, bog, allo_rate, ta, MI, S, P, p_steady_allo)
+    return (idx, bog, allo_rate, ta, MI, S, P, entropy_a, entropy_b, p_steady_allo)
 
 def run_all(folder,create_case,variant):
     os.makedirs(folder+'_fcases', exist_ok=True)
@@ -36,6 +38,8 @@ def run_all(folder,create_case,variant):
     MI_arr = np.zeros(n, dtype=float)
     S_arr  = np.zeros(n, dtype=float)
     P_arr  = np.zeros(n, dtype=float)
+    ENTROPY_a_arr = np.zeros(n, dtype=float)
+    ENTROPY_b_arr = np.zeros(n, dtype=float)
     steadies = [None]*n
 
     # use up to all CPUs, tweak if you want to leave one free
@@ -47,17 +51,19 @@ def run_all(folder,create_case,variant):
                              args[0], args[1], args[2], variant,
                              create_case) for args in grid]
         for fut in as_completed(futures):
-            idx, bog, allo_rate, ta, MI, S, P, p_steady = fut.result()
+            idx, bog, allo_rate, ta, MI, S, P, entropy_a, entropy_b, p_steady = fut.result()
             # optional: live log (won’t be strictly ordered)
             print('solved', folder, ':', bog, allo_rate, ta)
             bog_allo_arr[idx] = (bog, allo_rate)
             MI_arr[idx] = MI
             S_arr[idx]  = S
             P_arr[idx]  = P
+            ENTROPY_a_arr[idx] = entropy_a
+            ENTROPY_b_arr[idx] = entropy_b
             steadies[idx] = p_steady
 
     # save summaries
-    out_summary = np.hstack([bog_allo_arr, MI_arr[:,None], S_arr[:,None], P_arr[:,None]])
+    out_summary = np.hstack([bog_allo_arr, MI_arr[:,None], S_arr[:,None], P_arr[:,None], ENTROPY_a_arr[:,None], ENTROPY_b_arr[:,None]])
     np.savetxt(folder+'_fcases/B_report.csv', out_summary)
 
 
@@ -66,19 +72,14 @@ if __name__ == "__main__":
     
     def case_vl_1(bog, ar, variant):
         return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, variant=variant)
-    
-    def case_vl_1_nu10(bog, ar, variant):
-        return params.create_cases(bog, V_allo_rate=ar, K_allo_rate=1, variant=variant, base_nu=10)
 
     def case_kl_1(bog, ar, variant):
         return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, variant=variant)
 
-    def case_kl_1_nu10(bog, ar, variant):
-        return params.create_cases(bog, V_allo_rate=1, K_allo_rate=ar, variant=variant, base_nu=10)
-
-    folders = ['V_?_K_1_allostery','V_?_K_1_allostery_nu10','V_1_K_?_allostery','V_1_K_?_allostery_nu10']
-    cases_gen = [case_vl_1,case_vl_1_nu10,case_kl_1,case_kl_1_nu10]
-    variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
+    folders = ['V_?_K_1_allostery','V_1_K_?_allostery']
+    cases_gen = [case_vl_1,case_kl_1]
+    variants = ALL_VARIANTS
+    variants = ['C2']
 
     try:
         variants = [sys.argv[1]]

@@ -2,6 +2,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import numpy as np
 import params_varbeta
+import basis
 import os
 
 def _worker(create_case, beta, V_allo_rate, K_allo_rate, variant, shape, params, folder):
@@ -65,7 +66,8 @@ if __name__ == "__main__":
 
     allo_rate = np.array([1/10,1.,10.])
 
-    variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
+    variants = basis.ALL_VARIANTS
+    variants = ['C2']
     param_sets = [(bog,      'varstep', np.array((14., 6.)), v) for v in variants] 
     param_sets += [(bog,      'varstep', np.array((5., 5.)), v) for v in variants]
 

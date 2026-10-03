@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 import stsp
 import smn
-from basis import marginalize,expected,mutual_info
+from basis import marginalize,expected,mutual_info,entropy,get_base_params
 
 from params import get_B as RMJP_get_B
 from params import solve as RMJP_solve
@@ -204,6 +204,8 @@ class case:
             S  = [expected(*marginalize(p,self.states,3)) for p in pt]
             P  = [expected(*marginalize(p,self.states,2)) for p in pt]
             MI = [mutual_info(*marginalize(p, self.states, [0,1]) ) for p in pt]
+            entropy_a = [entropy(marginalize(p, self.states, 0)[1]) for p in pt]
+            entropy_b = [entropy(marginalize(p, self.states, 1)[1]) for p in pt]
 
             del pt
             if savefolder is None:
@@ -213,7 +215,9 @@ class case:
             np.savetxt(savefolder+'/{}_'.format(self.kind)+self.hex_code+'_report.csv',np.vstack((t,bt,
                                                                                                   np.array(S),
                                                                                                   np.array(P),
-                                                                                                  np.array(MI))).T)
+                                                                                                  np.array(MI),
+                                                                                                  np.array(entropy_a),
+                                                                                                  np.array(entropy_b))).T)
                 
 def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
     return 'V=' + str(V_allo_rate) + '_K=' + str(K_allo_rate) + '_' + str(int(bog)) + '_' + function + '_' + str(beta_T)
@@ -221,23 +225,25 @@ def hex_code(bog,V_allo_rate=0,K_allo_rate=0,function='',beta_T=10.):
 
 def create_cases(bog,
                  V_allo_rate=1,K_allo_rate=1,
-                 variant='C2',function='triangle',beta_T=10.,
-                 base_kon=1,base_nu=1):
+                 variant='C2',function='triangle',beta_T=10.):
+    base_kon, base_koff, base_nu = get_base_params(variant)
     init = get_init(bog)
     val  = get_allosteric_value(bog,V_allo_rate,K_allo_rate,
-                                variant=variant,
-                                base_nu=base_nu,base_kon=base_kon)
+                                base_nu=base_nu,
+                                base_kon=base_kon,
+                                base_koff=base_koff)
 
     return case(init, val[1:], bog, beta_T, function, hex_code(bog,V_allo_rate,K_allo_rate,function,beta_T),kind='Allosteric')
 
 def create_equivalent_nonallo(bog,
                               eqV_allo_rate=1,eqK_allo_rate=1,
-                              variant='C2',function='triangle',beta_T=10.,
-                              base_kon=1,base_nu=1):
+                              variant='C2',function='triangle',beta_T=10.):
+    base_kon, base_koff, base_nu = get_base_params(variant)
     init = get_init(bog)
     val  = get_equivalent_non_allo_value(bog,eqV_allo_rate,
                                          eqK_allo_rate,
-                                         variant=variant,
-                                         base_nu=base_nu,base_kon=base_kon)
+                                         base_nu=base_nu,
+                                         base_kon=base_kon,
+                                         base_koff=base_koff)
 
     return case(init, val[1:], bog, beta_T, function, hex_code(bog,eqV_allo_rate,eqK_allo_rate,function,beta_T),kind='nonAllosteric')

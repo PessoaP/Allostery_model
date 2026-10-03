@@ -34,6 +34,8 @@ def solve_case(V, K, variant, mode, bog_list):
     MI = []
     S = []
     Prod = []
+    ENTROPY_a = []
+    ENTROPY_b = []
 
     for bog in bog_list:
         if mode == "allo":
@@ -55,10 +57,14 @@ def solve_case(V, K, variant, mode, bog_list):
         mi = mutual_info(*marginalize(p_steady, case.states, [0, 1]))
         s_ex = expected(*marginalize(p_steady, case.states, 3))
         p_ex = expected(*marginalize(p_steady, case.states, 2))
+        entropy_a = entropy(marginalize(p_steady, case.states, 0)[1])
+        entropy_b = entropy(marginalize(p_steady, case.states, 1)[1])
 
         MI.append(mi)
         S.append(s_ex)
         Prod.append(p_ex)
+        ENTROPY_a.append(entropy_a)
+        ENTROPY_b.append(entropy_b)
 
         print(f"solved {mode}: V={V}, K={K}, {variant}, bog={bog}, tna={tna}, MI={mi}")
 
@@ -70,7 +76,7 @@ def solve_case(V, K, variant, mode, bog_list):
         steady_file = os.path.join(outfolder, "nonallo_A_steady.csv")
 
     np.savetxt(mi_file,
-               np.array((bog_list, MI, S, Prod)).T,)
+               np.array((bog_list, MI, S, Prod, ENTROPY_a, ENTROPY_b)).T,)
 
     # p_arr = np.array(pad_stack(p_list))
     # np.savetxt(steady_file, p_arr)
@@ -113,9 +119,10 @@ def run_parallel(vals, variants, bog_list, maxw=None):
 if __name__ == "__main__":
     os.makedirs("sweep", exist_ok=True)
     vals = [1, 0.1, 10]
-    variants = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
+    variants = ALL_VARIANTS
+    variants = ['C2']
 
-    bog_list = np.concatenate((np.arange(0, 30, 2) / 10, np.arange(3, 21)))
+    bog_list = np.concatenate((np.arange(0, 30, 2) / 10, np.arange(3, 21))).round(5)
 
     bog_list[0] += 1e-3
 
