@@ -5,6 +5,9 @@ import matplotlib.ticker as ticker
 import os
 import pandas as pd
 import basis
+import sys
+import glob
+import zipfile
 
 
 # %%
@@ -13,7 +16,12 @@ folders = ['V_1_K_.1_allostery', 'V_1_K_1_allostery', 'V_1_K_10_allostery',
 
 
 st_variant = 'C2'
-variants_list = basis.ALL_VARIANTS
+# usage: python figures.py [all | allC | allD | new | <code> ...]
+# no argument -> every variant that has results on disk
+def _has_results(v):
+    return bool(glob.glob('sweep/*_'+v+'_res') or glob.glob('fixed/*/'+v+'_fcases') or os.path.exists('varallostery/'+v))
+variants_list = basis.parse_variants(sys.argv[1:], default=[v for v in basis.ALL_VARIANTS if _has_results(v)])
+VARIANTS = variants_list
 os.makedirs('figs', exist_ok=True)
 [os.makedirs('figs/'+variant, exist_ok=True) for variant in variants_list]
 
@@ -79,7 +87,7 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_sweep = ['sweep/'+f+'_'+variant+'_res' for f in folders]
 
@@ -132,7 +140,7 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_sweep = ['sweep/'+f+'_'+variant+'_res' for f in folders]
 
@@ -189,7 +197,7 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_sweep = ['sweep/'+f+'_'+variant+'_res' for f in folders]
 
@@ -244,7 +252,7 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_sweep = ['sweep/'+f+'_'+variant+'_res' for f in folders]
 
@@ -295,7 +303,7 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_sweep = ['sweep/'+f+'_'+variant+'_res' for f in folders]
 
@@ -385,14 +393,17 @@ folders_fixed = ['V_?_K_1_allostery','V_1_K_?_allostery']
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_fixed_variant = ['fixed/'+f+'/'+variant+'_fcases' for f in folders_fixed]
 
 
     for folder in folders_fixed_variant:
         fig, axs = plt.subplots(3, 1, sharex=True,figsize=(4,6))
-        plot_variable(folder,axs)
+        try:
+            plot_variable(folder,axs)
+        except Exception as e:
+            print(f"Failed to plot {folder}: {e}")
 
 
         # Legend outside on top
@@ -431,14 +442,18 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_fixed_variant = ['fixed/'+f+'/'+variant+'_fcases' for f in folders_fixed]
 
     fig, axs = plt.subplots(3, 2, sharex=True, figsize=(8, 7))
 
     for (folder, axi) in zip(folders_fixed_variant[:2], axs.T):
-        plot_variable(folder, axi)
+        try:
+            plot_variable(folder, axi)
+        except Exception as e:
+            print(f"Failed to plot {folder}: {e}")
+        # plot_variable(folder, axi)
 
     # Titles and x-labels
     #axs[0, 0].set_title(r'Silent K-allostery ($\xi_K$ = 1)', fontsize=20, pad=18)
@@ -501,14 +516,17 @@ for variant in variants_list:
 
 
 # %%
-variants_list = basis.ALL_VARIANTS
+variants_list = VARIANTS
 for variant in variants_list:
     folders_fixed_variant = ['fixed/'+f+'/'+variant+'_fcases' for f in folders_fixed]
 
     fig, axs = plt.subplots(6, 2, sharex=True, figsize=(8, 13.2))
 
     for (folder, axi) in zip(folders_fixed_variant[:2], axs.T):
-        plot_variable_entropy(folder, axi)
+        try:
+            plot_variable_entropy(folder, axi)
+        except Exception as e:
+            print(f"Failed to plot {folder}: {e}")
 
     # Titles and x-labels
     axs[-1, 0].set_xlabel(r'$\xi_V$', fontsize=20)
@@ -640,8 +658,12 @@ def make_plot_entropy(df, axs,tmax =-1,variant='C2'):
 
     axs[-1].set_xlim(t[0],t[-1])
 
-# %%
+found_variants = []
 for variant in variants_list:
+    if os.path.exists("varallostery/"+variant):
+        found_variants.append(variant)
+# %%
+for variant in found_variants:
     df = get_records_from_files(folder = "varallostery/"+variant)
 
     step_k1    = df[(df['kind']=='Allosteric')    & (df['beta']=='10') & (df['shape']=='varstep') & (df['times']=='[14.  6.]') & (df['xi_k']==1)  & df['xi_v'].isin([0.1, 1, 10])].sort_values('xi_v')
@@ -654,7 +676,10 @@ for variant in variants_list:
     fig, axs = plt.subplots(4, 2, sharex=True,figsize=(8,7.5))
 
     for (df, axi) in zip([step_k1, step_v1], axs.T):
-        make_plot(df, axi, variant=variant)
+        try:
+            make_plot(df, axi, variant=variant)
+        except Exception as e:
+            print(f"Failed to make plot for {variant}: {e}")
 
     [ax.set_ylabel(g,fontsize=14) for (ax,g) in zip (axs.T[0],[r'$\beta/\gamma_S$',
                                                             r'MI$_{AB}$',
@@ -687,7 +712,7 @@ for variant in variants_list:
     #plt.show()
 
 # %%
-for variant in variants_list:
+for variant in found_variants:
     df = get_records_from_files(folder = "varallostery/"+variant)
 
     step_k1    = df[(df['kind']=='Allosteric')    & (df['beta']=='10') & (df['shape']=='varstep') & (df['times']=='[14.  6.]') & (df['xi_k']==1)  & df['xi_v'].isin([0.1, 1, 10])].sort_values('xi_v')
@@ -700,7 +725,10 @@ for variant in variants_list:
     fig, axs = plt.subplots(7, 2, sharex=True,figsize=(8,13.2))
 
     for (df, axi) in zip([step_k1, step_v1], axs.T):
-        make_plot_entropy(df, axi, variant=variant)
+        try:
+            make_plot_entropy(df, axi, variant=variant)
+        except Exception as e:
+            print(f"Failed to make plot for {variant}: {e}")
 
     [ax.set_ylabel(g,fontsize=14) for (ax,g) in zip (axs.T[0],[r'$\beta/\gamma_S$',
                                                             r'MI$_{AB}$',
@@ -733,7 +761,7 @@ for variant in variants_list:
     #plt.show()
 
 # %%
-for variant in variants_list:
+for variant in found_variants:
     df = get_records_from_files(folder = "varallostery/"+variant)
 
     step_k1    = df[(df['kind']=='Allosteric')    & (df['beta']=='10') & (df['shape']=='varstep') & (df['times']=='[14.  6.]') & (df['xi_k']==1)  & df['xi_v'].isin([0.1, 1, 10])].sort_values('xi_v')
@@ -746,7 +774,10 @@ for variant in variants_list:
     fig, axs = plt.subplots(4, 2, sharex=True, sharey='row', figsize=(8,7.5))
 
     for (df, axi) in zip([step_k1, nastep_k1], axs.T):
-        make_plot(df, axi, variant=variant)
+        try:
+            make_plot(df, axi, variant=variant)
+        except Exception as e:
+            print(f"Failed to make plot for {variant}: {e}")
 
     [ax.set_ylabel(g,fontsize=14) for (ax,g) in zip (axs.T[0],[r'$\beta/\gamma_S$',
                                                             r'MI$_{AB}$',
@@ -780,7 +811,7 @@ for variant in variants_list:
     #plt.show()
 
 # %%
-for variant in variants_list:
+for variant in found_variants:
     df = get_records_from_files(folder = "varallostery/"+variant)
 
     step_k1    = df[(df['kind']=='Allosteric')    & (df['beta']=='10') & (df['shape']=='varstep') & (df['times']=='[14.  6.]') & (df['xi_k']==1)  & df['xi_v'].isin([0.1, 1, 10])].sort_values('xi_v')
@@ -793,7 +824,10 @@ for variant in variants_list:
     fig, axs = plt.subplots(7, 2, sharex=True, sharey='row', figsize=(8,13.2))
 
     for (df, axi) in zip([step_k1, nastep_k1], axs.T):
-        make_plot_entropy(df, axi, variant=variant)
+        try:
+            make_plot_entropy(df, axi, variant=variant)
+        except Exception as e:
+            print(f"Failed to make plot for {variant}: {e}")
 
     [ax.set_ylabel(g,fontsize=14) for (ax,g) in zip (axs.T[0],[r'$\beta/\gamma_S$',
                                                             r'MI$_{AB}$',
@@ -826,7 +860,7 @@ for variant in variants_list:
     #plt.show()
 
 # %%
-for variant in variants_list:
+for variant in found_variants:
     df = get_records_from_files(folder = "varallostery/"+variant)
 
     step_k1    = df[(df['kind']=='Allosteric')    & (df['beta']=='10') & (df['shape']=='varstep') & (df['times']=='[14.  6.]') & (df['xi_k']==1)  & df['xi_v'].isin([0.1, 1, 10])].sort_values('xi_v')
@@ -839,7 +873,10 @@ for variant in variants_list:
     fig, axs = plt.subplots(4, 2, sharex=True, sharey='row', figsize=(8,7.5))
 
     for (df, axi) in zip([step_v1, nastep_v1], axs.T):
-        make_plot(df, axi, variant=variant)
+        try:
+            make_plot(df, axi, variant=variant)
+        except Exception as e:
+            print(f"Failed to make plot for {variant}: {e}")
 
     [ax.set_ylabel(g,fontsize=14) for (ax,g) in zip (axs.T[0],[r'$\beta/\gamma_S$',
                                                             r'MI$_{AB}$',
@@ -872,7 +909,7 @@ for variant in variants_list:
     #plt.show()
 
 # %%
-for variant in variants_list:
+for variant in found_variants:
     df = get_records_from_files(folder = "varallostery/"+variant)
 
     step_k1    = df[(df['kind']=='Allosteric')    & (df['beta']=='10') & (df['shape']=='varstep') & (df['times']=='[14.  6.]') & (df['xi_k']==1)  & df['xi_v'].isin([0.1, 1, 10])].sort_values('xi_v')
@@ -885,7 +922,10 @@ for variant in variants_list:
     fig, axs = plt.subplots(7, 2, sharex=True, sharey='row', figsize=(8,13.2))
 
     for (df, axi) in zip([step_v1, nastep_v1], axs.T):
-        make_plot_entropy(df, axi, variant=variant)
+        try:
+            make_plot_entropy(df, axi, variant=variant)
+        except Exception as e:
+            print(f"Failed to make plot for {variant}: {e}")
 
     [ax.set_ylabel(g,fontsize=14) for (ax,g) in zip (axs.T[0],[r'$\beta/\gamma_S$',
                                                             r'MI$_{AB}$',
@@ -913,11 +953,17 @@ for variant in variants_list:
 
     if st_variant != variant:
         fig.suptitle(((variant+' -- ') if st_variant != variant else '') + r'$\xi_V$ = 1 variable $\xi_K$', fontsize=16)
-    fig.savefig('figs/'+variant+'/f4_K_comparison_entropy.png',bbox_inches='tight',dpi=400)
+    #fig.savefig('figs/'+variant+'/f4_K_comparison_entropy.png',bbox_inches='tight',dpi=400)
     fig.savefig('figs/'+variant+'/f4_K_comparison_entropy.svg',bbox_inches='tight')
     #plt.show()
 
 # %%
 
 
-
+# %% zip all svgs
+zip_name = 'figs/svgs_' + ('_'.join(sys.argv[1:]) or 'all') + '.zip'
+with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zf:
+    for variant in VARIANTS:
+        for svg in sorted(glob.glob('figs/'+variant+'/*.svg')):
+            zf.write(svg)
+print('zipped', len(zf.namelist()), 'svgs ->', zip_name)

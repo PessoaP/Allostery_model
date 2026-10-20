@@ -81,11 +81,8 @@ if __name__ == "__main__":
     variants = ALL_VARIANTS
     variants = ['C2']
 
-    try:
-        arg = sys.argv[1]
-        variants = ALL_VARIANTS if arg == 'all' else [arg]
-    except IndexError:
-        pass
+    # accepts any number of codes, or all / allC / allD / new
+    variants = parse_variants(sys.argv[1:])
 
     os.makedirs('fixed', exist_ok=True)
     for folder, create_case in zip(folders, cases_gen):

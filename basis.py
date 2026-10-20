@@ -53,26 +53,53 @@ def entropy(p):
     ps = p[p!=0]
     return -np.sum(ps*np.log(ps))
 
+# each entry: (base_kon, base_koff, base_nu, kBon_mult)
+# kBon_mult scales the B-reaction's kon relative to kon_A: kBon = base_kon * kBon_mult
 BASE_PARAMS = {
-    'C1':  (0.1, 1,   1),
-    'C2':  (2,   1,   1),   # standard / default
-    'C3':  (0.5, 1,   1),
-    'C4':  (1,   1,   1),
-    'C5':  (10,  1,   1),
-    'C6':  (2,   0.1, 1),
-    'C7':  (2,   0.5, 1),
-    'C8':  (2,   2,   1),
-    'C9':  (2,   10,  1),
-    'C10': (2,   1,   0.1),
-    'C11': (2,   1,   0.5),
-    'C12': (2,   1,   2),
-    'C13': (2,   1,   10),
+    'C1':  (0.1, 1,   1,   1),
+    'C2':  (2,   1,   1,   1),   # standard / default
+    'C3':  (0.5, 1,   1,   1),
+    'C4':  (1,   1,   1,   1),
+    'C5':  (10,  1,   1,   1),
+    'C6':  (2,   0.1, 1,   1),
+    'C7':  (2,   0.5, 1,   1),
+    'C8':  (2,   2,   1,   1),
+    'C9':  (2,   10,  1,   1),
+    'C10': (2,   1,   0.1, 1),
+    'C11': (2,   1,   0.5, 1),
+    'C12': (2,   1,   2,   1),
+    'C13': (2,   1,   10,  1),
+    'C14': (2,   1,   1,   2),
+    'C15': (2,   1,   1,   5),
+    'C16': (2,   2,   0.5, 1),
+    'C17': (2,   2,   2,   1),
+    'C18': (2,   2,   1,   2),
+    'C19': (3,   3,   1,   1),
 }
 
-ALL_VARIANTS = list(BASE_PARAMS)
+# D variants share the C parameters (D<n> == C<n>), but the alpha_S / alpha_Sp
+# allosteric rates split with sqrt(K) instead of putting all of K on alpha_S.
+BASE_PARAMS.update({'D'+k[1:]: v for k, v in list(BASE_PARAMS.items())})
+
+C_VARIANTS = [v for v in BASE_PARAMS if v[0] == 'C']
+D_VARIANTS = [v for v in BASE_PARAMS if v[0] == 'D']
+ALL_VARIANTS = C_VARIANTS + D_VARIANTS
+NEW_VARIANTS = ['C16', 'C17', 'C18', 'C19', 'D16', 'D17', 'D18', 'D19']
 
 def get_base_params(variant):
     return BASE_PARAMS[variant]
+
+def alpha_sqrtK(variant):
+    return variant[0] == 'D'
+
+def parse_variants(args, default=('C2',)):
+    # no args -> default; 'all' -> everything; 'allC'/'allD' -> one family; 'new' -> the newest cases; else explicit codes
+    if not args:
+        return list(default)
+    out = []
+    for a in args:
+        out += {'all': ALL_VARIANTS, 'allC': C_VARIANTS, 'allD': D_VARIANTS, 'new': NEW_VARIANTS}.get(a, [a])
+    return out
 
 def mutual_info(s,p):
     #This assumes you already marginalized \sigma_A and B, it is a general mutual information function. 

@@ -70,11 +70,8 @@ if __name__ == "__main__":
     variants = basis.ALL_VARIANTS
     variants = ['C2']
 
-    try:
-        arg = sys.argv[1]
-        variants = basis.ALL_VARIANTS if arg == 'all' else [arg]
-    except IndexError:
-        pass
+    # accepts any number of codes, or all / allC / allD / new
+    variants = basis.parse_variants(sys.argv[1:])
 
     param_sets = [(bog,      'varstep', np.array((14., 6.)), v) for v in variants]
     param_sets += [(bog,      'varstep', np.array((5., 5.)), v) for v in variants]
